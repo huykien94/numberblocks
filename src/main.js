@@ -1,5 +1,5 @@
 import './style.css';
-import { result, progressTotal, makeProblem, answerChoices } from './math.js';
+import { result, progressTotal, makeProblem, answerChoices, rangeFor } from './math.js';
 import { createSoundPlayer } from './audio.js';
 import { createNarrator, questionText, numberText } from './narration.js';
 import { createBlockMotion } from './motion.js';
@@ -23,7 +23,7 @@ Object.assign(copy.en, {
  nextPuzzle:'Next puzzle', explore:'Your playground', soundTip:'Tap to play · Sound on for a little joy', voiceHelp:'Speech help', testVoice:'Test voice', voiceTitle:'Speech on your tablet', voiceInstructions:'If music plays but speech does not, try opening the game in Chrome. On Samsung, open Settings → General management → Text-to-speech, choose the Google engine if available, and install voice data for the selected language. Menu names vary by Android version. Reopen the game and tap Test voice.', voiceUnsupported:'This browser does not support speech. Try opening the game in Chrome.', voiceMissing:'The speech engine does not have a voice for this language. Check the device’s text-to-speech settings.', voiceBlocked:'Speech playback is blocked. Tap Hear the puzzle to try again.', music:'Music', help:'Hear the puzzle', soundUnavailable:'Speech could not play. Tap Hear the puzzle to retry; you can still keep playing.',
 });
 Object.assign(copy.vi, {
- smallSteps:'Trong phạm vi 5', exploreMore:'Trong phạm vi 10', rangeLabel:'Phạm vi số',
+ upToTwenty:'Trong phạm vi 20', twentyNote:'Mức 20 dành cho cộng, trừ. Nhân và chia vẫn trong phạm vi 10.', smallSteps:'Trong phạm vi 5', exploreMore:'Trong phạm vi 10', rangeLabel:'Phạm vi số',
  removed:'Khay bớt đi', removedEmpty:'Chạm một khối để chuyển sang khay này.', remaining:'Còn lại',
  joinTray:'Khay đếm chung', groupTray:'Các nhóm bằng nhau', shareTray:'Chia đều cho từng bạn', friend:'Bạn',
  pieces:'khối', eachGroup:'Mỗi nhóm', groupsOf:'nhóm, mỗi nhóm',
@@ -35,7 +35,7 @@ Object.assign(copy.vi, {
  learningNote:'Bắt đầu với phạm vi 1–5. Mời con chỉ vào mỗi khối và đếm một lần. Khay có các hàng 5 ô giúp con nhận ra lượng. Khi trừ, quan sát cả phần còn lại và phần đã bớt; khi nhân, đếm các nhóm bằng nhau; khi chia, lần lượt chia cho từng bạn. Hãy để con tự thao tác trước khi dùng nút làm mẫu. Có thể dùng thêm hạt, que hoặc khối thật ngoài màn hình. Đây là hoạt động lấy cảm hứng từ Montessori, không thay thế giáo cụ và hướng dẫn trực tiếp.',
 });
 Object.assign(copy.en, {
- smallSteps:'Numbers up to 5', exploreMore:'Numbers up to 10', rangeLabel:'Number range',
+ upToTwenty:'Numbers up to 20', twentyNote:'Up to 20 for addition and subtraction. Multiplication and division stay within 10.', smallSteps:'Numbers up to 5', exploreMore:'Numbers up to 10', rangeLabel:'Number range',
  removed:'Taken-away tray', removedEmpty:'Tap a block to move it into this tray.', remaining:'Remaining',
  joinTray:'Our counting tray', groupTray:'Equal groups', shareTray:'Share equally with each friend', friend:'Friend',
  pieces:'blocks', eachGroup:'Each group', groupsOf:'groups of',
@@ -51,7 +51,7 @@ const narrator=createNarrator({onSpeaking:value=>sounds.setDucked(value),onUnava
 let used = new Set();
 const symbols={add:'+',subtract:'−',multiply:'×',divide:'÷'};
 let [a,b] = makeProblem(mode,Math.random,[],maxQuantity);
-let choices=answerChoices(result(mode,a,b),Math.random,maxQuantity);
+let choices=answerChoices(result(mode,a,b),Math.random,rangeFor(mode,maxQuantity));
 const t = key => copy[lang][key];
 function character(n, extra='') {
  const cols=n===4||n===6||n===8||n===10?2:n===9?3:1;
@@ -66,7 +66,8 @@ function stage() {
  return `<div class="source-group coral-tray wide"><span class="group-caption">${a} ${t('pieces')}</span>${Array.from({length:a},(_,i)=>block('a-'+i,'coral')).join('')}</div>`;
 }
 function countingTray(contents){
- return `<div class="counting-tray" aria-label="${maxQuantity} ${lang==='vi'?'ô đếm':'counting spaces'}">${Array.from({length:maxQuantity},(_,i)=>`<span class="counting-space">${contents[i]||''}</span>`).join('')}</div>`;
+ const frames=maxQuantity===20?[10,10]:[maxQuantity];
+ return `<div class="counting-frames">${frames.map((size,frame)=>`<div class="counting-tray" aria-label="${size} ${lang==='vi'?'ô đếm':'counting spaces'}">${Array.from({length:size},(_,i)=>`<span class="counting-space">${contents[frame*10+i]||''}</span>`).join('')}</div>`).join('')}</div>`;
 }
 function basket() {
  if(mode==='divide')return Array.from({length:b},(_,i)=>{
@@ -94,7 +95,7 @@ function welcome() {
  return `<main class="welcome-screen"><section class="welcome-content"><div class="welcome-copy"><div class="eyebrow">✦ ${t('badge')}</div><h1 tabindex="-1">${t('hero')}<br><span>${t('hero2')}</span></h1><p>${t('intro')}</p><button class="start-button" data-start><span class="start-icon" aria-hidden="true">▶</span> ${t('start')} <span aria-hidden="true">→</span></button><div class="welcome-note">${t('soundTip')}</div></div><div class="hero-art" aria-hidden="true"><div class="art-orbit"></div><span class="doodle d1">✧</span><span class="doodle d2">✦</span><span class="doodle d3">+</span><span class="doodle d4">∿</span><span class="hello">${lang==='vi'?'Chào bé!':'Hello there!'}</span>${character(1,'hero-one')}${character(3,'hero-three')}${character(2,'hero-two')}<div class="ground"></div></div></section><div class="welcome-footer"><span>✦ ${t('ages')}</span><span>♡ ${t('safe')}</span><span>VI / EN</span></div></main>`;
 }
 function selection() {
- return `<main class="selection-screen"><div class="screen-toolbar"><button class="back-button" data-home>← ${t('home')}</button><span class="little-caption">✦ ${t('ready')}</span></div><div class="selection-heading"><h1 tabindex="-1">${t('pickTitle')}</h1><p>${t('pickSubtitle')}</p></div><div class="number-range" role="group" aria-label="${t('rangeLabel')}"><button data-range="5" aria-pressed="${maxQuantity===5}">${t('smallSteps')}</button><button data-range="10" aria-pressed="${maxQuantity===10}">${t('exploreMore')}</button></div><nav class="operation-grid" aria-label="${t('change')}">${Object.keys(symbols).map((m,i)=>`<button data-mode="${m}" class="operation-card operation-${m}"><div class="operation-top"><span class="operation-symbol">${symbols[m]}</span><span class="operation-arrow" aria-hidden="true">→</span></div><div class="operation-bottom"><div><strong>${t(m)}</strong><small>${t('sub'+m)}</small></div><div class="card-friend" aria-hidden="true">${character(i===0?2:i===1?1:i===2?3:4)}</div></div></button>`).join('')}</nav></main>`;
+ return `<main class="selection-screen"><div class="screen-toolbar"><button class="back-button" data-home>← ${t('home')}</button><span class="little-caption">✦ ${t('ready')}</span></div><div class="selection-heading"><h1 tabindex="-1">${t('pickTitle')}</h1><p>${t('pickSubtitle')}</p></div><div class="number-range" role="group" aria-label="${t('rangeLabel')}"><button data-range="5" aria-pressed="${maxQuantity===5}">${t('smallSteps')}</button><button data-range="10" aria-pressed="${maxQuantity===10}">${t('exploreMore')}</button><button data-range="20" aria-pressed="${maxQuantity===20}">${t('upToTwenty')}</button></div>${maxQuantity===20?`<p class="range-note">${t('twentyNote')}</p>`:''}<nav class="operation-grid" aria-label="${t('change')}">${Object.keys(symbols).map((m,i)=>`<button data-mode="${m}" class="operation-card operation-${m}"><div class="operation-top"><span class="operation-symbol">${symbols[m]}</span><span class="operation-arrow" aria-hidden="true">→</span></div><div class="operation-bottom"><div><strong>${t(m)}</strong><small>${t('sub'+m)}</small></div><div class="card-friend" aria-hidden="true">${character(i===0?2:i===1?1:i===2?3:4)}</div></div></button>`).join('')}</nav></main>`;
 }
 function game() {
  const done=moved>=progressTotal(mode,a,b);
@@ -130,7 +131,7 @@ function readRoute() {
  cancelActivity();
  const route=location.hash.slice(1).split('/');
  if((route[0]==='play'||route[0]==='retry')&&Object.hasOwn(symbols,route[1])){
-  if(mode!==route[1]){mode=route[1];[a,b]=makeProblem(mode,Math.random,[],maxQuantity);choices=answerChoices(result(mode,a,b),Math.random,maxQuantity);clear();}
+  if(mode!==route[1]){mode=route[1];[a,b]=makeProblem(mode,Math.random,[],maxQuantity);choices=answerChoices(result(mode,a,b),Math.random,rangeFor(mode,maxQuantity));clear();}
   screen=route[0];
  } else screen=route[0]==='choose'?'choose':'welcome';
  render(true);
@@ -191,7 +192,7 @@ function bind() {
  const on=(selector,handler)=>document.querySelectorAll(selector).forEach(el=>el.onclick=()=>handler(el));
  on('[data-home]',()=>{narrator.cancel();navigate('welcome');});
  on('[data-start], [data-choose]',()=>{narrator.cancel();navigate('choose');sounds.play('next');});
- on('[data-mode]',el=>{const previous=mode===el.dataset.mode?[a,b]:[];mode=el.dataset.mode;[a,b]=makeProblem(mode,Math.random,previous,maxQuantity);choices=answerChoices(result(mode,a,b),Math.random,maxQuantity);clear();navigate('play');sounds.play('next');readPuzzle();});
+ on('[data-mode]',el=>{const previous=mode===el.dataset.mode?[a,b]:[];mode=el.dataset.mode;[a,b]=makeProblem(mode,Math.random,previous,maxQuantity);choices=answerChoices(result(mode,a,b),Math.random,rangeFor(mode,maxQuantity));clear();navigate('play');sounds.play('next');readPuzzle();});
  on('[data-lang]',el=>{cancelActivity();lang=el.dataset.lang;audioNotice=false;render();if(screen==='play')readPuzzle();else if(screen==='retry')speak(t('wrongNote'));});
  on('[data-range]',el=>{maxQuantity=Number(el.dataset.range);render();sounds.play('toggle');});
  on('[data-count-together]',async()=>{clear();navigate('play');await runAll();});
@@ -212,7 +213,7 @@ function bind() {
   }
  });
  on('[data-replay]',()=>{clear();navigate('play');sounds.play('reset');readPuzzle();});
- on('[data-new]',()=>{[a,b]=makeProblem(mode,Math.random,[a,b],maxQuantity);choices=answerChoices(result(mode,a,b),Math.random,maxQuantity);clear();render();sounds.play('next');readPuzzle();});
+ on('[data-new]',()=>{[a,b]=makeProblem(mode,Math.random,[a,b],maxQuantity);choices=answerChoices(result(mode,a,b),Math.random,rangeFor(mode,maxQuantity));clear();render();sounds.play('next');readPuzzle();});
  const dialog=document.querySelector('dialog');on('[data-parent]',()=>{cancelActivity();render();document.querySelector('dialog').showModal();});on('[data-close]',()=>dialog.close());dialog.onclick=e=>{if(e.target===dialog)dialog.close();};
 }
 function prepareAudio(){void sounds.start();narrator.warmup();}

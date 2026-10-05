@@ -1,4 +1,4 @@
-export const limits = { add: [0, 10, 0, 10], subtract: [0, 10, 0, 10], multiply: [1, 5, 1, 4], divide: [1, 20, 1, 5] };
+export const limits = { add: [0, 20, 0, 20], subtract: [0, 20, 0, 20], multiply: [1, 5, 1, 4], divide: [1, 20, 1, 5] };
 export function result(mode, a, b) {
   if (mode === 'add') return a + b;
   if (mode === 'subtract') return a - b;
@@ -19,10 +19,12 @@ export function nextValue(mode, a, b, operand, direction) {
   return operand === 'a' ? a : b;
 }
 export function progressTotal(mode, a, b) { return mode === 'add' || mode === 'divide' ? (mode === 'add' ? a + b : a) : b; }
+export function rangeFor(mode,selectedRange){return Math.min(selectedRange,mode==='add'||mode==='subtract'?20:10);}
 export function problemPool(mode, previous = [], maxQuantity = 20) {
+  maxQuantity=rangeFor(mode,maxQuantity);
   const pool = [];
-  const maxA = mode === 'divide' ? 16 : mode === 'subtract' ? 10 : 5;
-  const maxB = mode === 'subtract' ? 10 : mode === 'add' ? 5 : 4;
+  const maxA = mode === 'divide' ? 16 : mode === 'subtract' ? maxQuantity : mode === 'add' && maxQuantity===20 ? 19 : 5;
+  const maxB = mode === 'subtract' ? maxQuantity : mode === 'add' ? (maxQuantity===20?19:5) : 4;
   for (let a = mode === 'subtract' ? 2 : 1; a <= maxA; a++) {
     for (let b = 1; b <= maxB; b++) {
       if (valid(mode, a, b) && a <= maxQuantity && b <= maxQuantity && result(mode,a,b) <= maxQuantity && (mode !== 'divide' || a / b <= 4) &&

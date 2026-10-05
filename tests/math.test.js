@@ -47,3 +47,15 @@ test('preschool ranges bound operands, results and answer choices in all operati
   }
  }
 });
+test('20 range includes larger addition/subtraction and keeps multiplication/division within 10',async()=>{
+ const {problemPool,rangeFor,answerChoices}=await import('../src/math.js');
+ assert.ok(problemPool('add',[],20).some(([a,b])=>a===12&&b===8));
+ assert.ok(problemPool('subtract',[],20).some(([a,b])=>a===20&&b===7));
+ assert.ok(problemPool('subtract',[],20).some(([a,b])=>a===20&&b===20));
+ for(const mode of ['add','subtract','multiply','divide']){
+  const cap=rangeFor(mode,20);for(const [a,b] of problemPool(mode,[],20)){
+   const answer=result(mode,a,b);assert.ok(a<=cap&&b<=cap&&answer>=0&&answer<=cap);
+   const choices=answerChoices(answer,()=>.5,cap);assert.equal(new Set(choices).size,3);assert.ok(choices.every(n=>n>=0&&n<=cap));
+  }
+ }
+});

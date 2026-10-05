@@ -24,7 +24,7 @@ The five/ten-space tray is our own visual counting scaffold; it is not described
 
 ## Interaction and progression
 
-- Begin with quantities up to five; the operation menu can switch to quantities up to ten. Operands, results and answer choices stay within the selected range. Zero can occur as a subtraction result.
+- Begin with quantities up to five; the operation menu can switch to quantities up to ten, or up to twenty for addition/subtraction (multiplication/division remain capped at ten). Level twenty uses two separate ten-space trays. Operands, results and answer choices stay within the selected range. Zero can occur as a subtraction result.
 - Let the child touch and count. Demonstration remains optional. Physical pointing and moving one object per spoken count are useful activities away from the screen.
 - The child's early-answer option and separate retry screen are retained, as explicitly requested by the parent. A new “Count together” button replays the same problem with visible manipulation; choosing a wrong answer does not require switching to a different problem.
 - Answer positions stay fixed during a puzzle and are shuffled for a new puzzle. There is no timer or automatic difficulty escalation.
