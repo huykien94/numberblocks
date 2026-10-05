@@ -31,10 +31,9 @@ jobs:
         run: npm test
       - name: Build game
         run: npm run build
+      # Enable Pages in repository Settings → Pages → GitHub Actions first.
       - name: Configure Pages
         uses: actions/configure-pages@v5
-        with:
-          enablement: true
       - name: Upload website
         uses: actions/upload-pages-artifact@v3
         with:

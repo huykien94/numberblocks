@@ -31,4 +31,4 @@ No account, analytics, advertising or backend. Use the existing checkout in each
 
 The GitHub Actions workflow `.github/workflows/pages.yml` tests, builds, and deploys pushes to `main`. Vite uses `/numberblocks/` as the base path, so the game is served at `https://huykien94.github.io/numberblocks/` after a successful deployment.
 
-If Pages is not enabled automatically, a repository administrator must open **Settings → Pages → Build and deployment → Source**, select **GitHub Actions**, and rerun the deployment workflow. For local development, open the `/numberblocks/` path printed by Vite.
+Before the first deployment, a repository administrator must open **Settings → Pages → Build and deployment → Source**, select **GitHub Actions**, and run the deployment workflow. The workflow deliberately does not try to create a Pages site: the default GitHub Actions token cannot enable Pages for the first time. For local development, open the `/numberblocks/` path printed by Vite.
