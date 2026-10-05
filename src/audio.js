@@ -1,7 +1,7 @@
 // Original, locally synthesized melodies. Audio starts only after an interaction.
 export function createSoundPlayer(getContext = () => {
   const AudioContext = globalThis.AudioContext || globalThis.webkitAudioContext;
-  return AudioContext ? new AudioContext() : null;
+  return AudioContext ? new AudioContext({latencyHint:'interactive'}) : null;
 }, timers = globalThis) {
   let context, enabled = true, generation = 0, paused = false;
   let musicEnabled = true, started = false, musicTimer, musicBus, ducked = false;

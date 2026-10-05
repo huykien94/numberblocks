@@ -10,7 +10,9 @@ export function questionText(lang,mode,a,b) {
 }
 export function createNarrator({synthesis=globalThis.speechSynthesis, Utterance=globalThis.SpeechSynthesisUtterance, onSpeaking=()=>{}, onUnavailable=()=>{}}={}) {
   let generation=0, finish;
-  function cancel(){generation++;synthesis?.cancel();finish?.(false);finish=undefined;onSpeaking(false);}
+  function cancel(){generation++;if(finish||synthesis?.speaking||synthesis?.pending)synthesis?.cancel();finish?.(false);finish=undefined;onSpeaking(false);}
+  function warmup(){try{synthesis?.getVoices();}catch{}}
+  warmup();
   function speak(text,lang){
     cancel();const current=generation;
     const completion=new Promise(resolve=>{finish=resolve;});
@@ -24,11 +26,11 @@ export function createNarrator({synthesis=globalThis.speechSynthesis, Utterance=
       utterance.lang=lang==='vi'?'vi-VN':'en-US';if(voice)utterance.voice=voice;
       utterance.rate=lang==='vi'?.85:.8;utterance.pitch=1.08;utterance.volume=1;
       utterance.onstart=()=>{if(current===generation)onSpeaking(true);};
-      utterance.onend=()=>{if(current===generation){onSpeaking(false);finish?.(true);}};
+      utterance.onend=()=>{if(current===generation){onSpeaking(false);const resolve=finish;finish=undefined;resolve?.(true);}};
       utterance.onerror=event=>{if(current!==generation)return;onSpeaking(false);finish?.(false);if(!['canceled','interrupted'].includes(event.error))onUnavailable();};
       synthesis.speak(utterance);
     }catch{onSpeaking(false);onUnavailable();finish?.(false);}
     return completion;
   }
-  return {speak,cancel};
+  return {speak,cancel,warmup};
 }

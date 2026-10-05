@@ -113,21 +113,22 @@ function pendingIds(){
  if(mode==='multiply')return Array.from({length:b},(_,i)=>'g-'+i).filter(id=>!used.has(id));
  return Array.from({length:a},(_,i)=>'a-'+i).filter(id=>!used.has(id)).slice(0,progressTotal(mode,a,b)-moved);
 }
-async function stepMove(id,token){
+async function stepMove(id,token,{announce=true}={}){
  if(token!==activity||used.has(id)||moved>=progressTotal(mode,a,b))return false;
+ const nextCount=mode==='multiply'?a*(moved+1):mode==='subtract'?a-moved-1:moved+1;
+ // Start feedback in the input event, not after the block arrives.
+ let timeout;
+ if(announce)sounds.play('tap');
+ const speechCompletion=announce&&sound&&!document.hidden
+  ? Promise.race([speak(numberText(lang,nextCount)),new Promise(resolve=>{timeout=setTimeout(resolve,2400);})])
+  : Promise.resolve();
  moving=true;render();
  const source=document.querySelector(`[data-block="${id}"]`);
  const destination=mode==='divide'?document.querySelectorAll('.share-group')[moved%b]:document.querySelector(mode==='subtract'?'.direction-arrow':'.basket-content');
  await motion.fly(source,destination,{remove:mode==='subtract'});
- if(token!==activity)return false;
- used.add(id);moved++;moving=false;
- counting=mode==='multiply'?a*moved:mode==='subtract'?a-moved:moved;
- render();sounds.play('tap');
- if(sound&&!document.hidden){
-  let timeout;
-  await Promise.race([speak(numberText(lang,counting)),new Promise(resolve=>{timeout=setTimeout(resolve,2400);})]);
-  clearTimeout(timeout);
- }
+ if(token!==activity){clearTimeout(timeout);return false;}
+ used.add(id);moved++;moving=false;counting=nextCount;
+ render();await speechCompletion;clearTimeout(timeout);
  return token===activity;
 }
 async function move(id){
@@ -135,12 +136,14 @@ async function move(id){
  cancelActivity();const token=activity;
  if(await stepMove(id,token)){if(moved>=progressTotal(mode,a,b))sounds.play('merge');revealAnswers();}
 }
-async function runAll(){
+async function runAll({celebrate=false}={}){
  if(moving||grouping)return false;
- cancelActivity();const token=activity;grouping=true;render();
- for(const id of pendingIds())if(!await stepMove(id,token))return false;
+ cancelActivity();const token=activity;grouping=true;
+ if(celebrate){sounds.play('correct');speak(t('correct'));}
+ render();
+ for(const id of pendingIds())if(!await stepMove(id,token,{announce:!celebrate}))return false;
  if(token!==activity)return false;
- grouping=false;moving=false;render();revealAnswers();sounds.play('merge');return true;
+ grouping=false;moving=false;render();revealAnswers();if(!celebrate)sounds.play('merge');return true;
 }
 function bind() {
  const on=(selector,handler)=>document.querySelectorAll(selector).forEach(el=>el.onclick=()=>handler(el));
@@ -157,17 +160,20 @@ function bind() {
  on('[data-answer]',async el=>{
   if(won)return;
   if(Number(el.dataset.answer)===result(mode,a,b)){
-   cancelActivity();won=true;stars++;feedback='correct';render();
-   if(await runAll()){sounds.play('correct');speak(t('correct'));}
+   cancelActivity();won=true;stars++;feedback='correct';
+   await runAll({celebrate:true});
   }else{
-   clear();navigate('retry');sounds.play('retry');speak(t('wrongNote'));
+   clear();sounds.play('retry');navigate('retry');speak(t('wrongNote'));
   }
  });
  on('[data-replay]',()=>{clear();navigate('play');sounds.play('reset');readPuzzle();});
  on('[data-new]',()=>{[a,b]=makeProblem(mode,Math.random,[a,b]);choices=answerChoices(result(mode,a,b));clear();render();sounds.play('next');readPuzzle();});
  const dialog=document.querySelector('dialog');on('[data-parent]',()=>{cancelActivity();render();document.querySelector('dialog').showModal();});on('[data-close]',()=>dialog.close());dialog.onclick=e=>{if(e.target===dialog)dialog.close();};
 }
-document.addEventListener('click',()=>{void sounds.start();},{capture:true});
+function prepareAudio(){void sounds.start();narrator.warmup();}
+document.addEventListener('pointerdown',prepareAudio,{capture:true,passive:true});
+document.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' ')prepareAudio();},{capture:true});
+document.addEventListener('click',prepareAudio,{capture:true});
 document.addEventListener('visibilitychange',()=>{sounds.setPaused(document.hidden);if(document.hidden){cancelActivity();render();}});
 window.addEventListener('pagehide',()=>{sounds.setPaused(true);cancelActivity();});
 window.addEventListener('pageshow',()=>sounds.setPaused(document.hidden));
