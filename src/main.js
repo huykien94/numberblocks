@@ -7,14 +7,14 @@ const copy = {
  en: {club:'LITTLE MATH CLUB', badge:'A LITTLE PLAY. A LOT OF DISCOVERY.', hero:'Little blocks.', hero2:'Big discoveries!', intro:'Tap, count and explore a world of numbers with your little block friends.', parent:'For parents', sound:'Sound', on:'On', off:'Off', add:'Add', subtract:'Subtract', multiply:'Multiply', divide:'Divide', subadd:'Bring together', subsubtract:'Take some away', submultiply:'Make little groups', subdivide:'Share equally', titleadd:'Let’s bring blocks together!', titlesubtract:'Let’s take some blocks away!', titlemultiply:'Let’s make equal groups!', titledivide:'Let’s share the blocks!', descadd:'Two little groups meet. How many blocks are there altogether?', descsubtract:'Some friends leave the group. How many blocks are left?', descmultiply:'Every group has the same number of blocks. How many altogether?', descdivide:'Share the blocks equally. How many are in each group?', step:'A LITTLE NUMBER SURPRISE', groupA:'First group', groupB:'Second group', total:'Starting blocks', remove:'Blocks to take away', each:'Blocks in each group', groups:'Number of groups', tip:'Tap + or − to change the numbers', play:'TAP AND DISCOVER', tap:'Tap each block to put it in the basket!', tapSubtract:'Tap a block to take it away!', tapMultiply:'Tap a group to add its blocks!', tapDivide:'Tap each block to share them in turn!', basket:'Your answer basket', empty:'The blocks are waiting for you!', actionadd:'Bring all together', actionsubtract:'Take blocks away', actionmultiply:'Make all groups', actiondivide:'Share equally', reset:'Try again', new:'New puzzle', answer:'How many can you count?', correct:'Well done! You counted them all!', retry:'Almost! Let’s count the blocks again.', done:'Amazing! Let’s count the answer.', help:'Listen to instructions', footer:'A little block. A big discovery.', footsub:'A math playground for little curious minds.', safe:'Ad-free play', ages:'For ages 3–6', feature1:'Little hands, big ideas', feature1text:'Move the blocks. Discover for yourself.', feature2:'At your own little pace', feature2text:'No timers. No pressure.', feature3:'Two languages, twice the fun', feature3text:'Explore in Vietnamese and English.', stars:'Your stars', parentTitle:'Explore numbers together', parentText:'Each puzzle has two random numbers. Addition groups have 1 to 5 blocks each. Invite your child to tap and count each block out loud, then choose an answer. Choose New puzzle for different numbers, or Try again to replay the current puzzle. For multiplication and division, explore the equal groups together.', parentNote:'No time limits, accounts or collection of your child’s information. Stars last for this play session only. Playful sounds start on interaction and can be muted with the sound button. Speech depends on the browser and voices installed on your device.', close:'Got it', block:'blocks', group:'Group', choose:'Choose an answer', zero:'No blocks left', count:'Moved', completed:'Completed', soundUnavailable:'Speech is unavailable on this device. You can still read the instructions on screen.'}
 };
 Object.assign(copy.vi, {
- start:'Bắt đầu chơi', pickTitle:'Hôm nay bé muốn chơi gì?', pickSubtitle:'Chọn một phép tính để cùng các bạn khối số khám phá nhé!',
- back:'Quay lại', home:'Trang đầu', change:'Đổi phép tính', ready:'Bé sẵn sàng chưa?', waiting:'Chạm các khối để đếm, rồi chọn đáp án nhé!',
+ wrongTitle:'Chưa đúng rồi, bé ơi!', wrongNote:'Không sao cả! Mình cùng chơi lại và đếm thật kỹ nhé.', replay:'Chơi lại từ đầu', start:'Bắt đầu chơi', pickTitle:'Hôm nay bé muốn chơi gì?', pickSubtitle:'Chọn một phép tính để cùng các bạn khối số khám phá nhé!',
+ back:'Quay lại', home:'Trang đầu', change:'Đổi phép tính', ready:'Bé sẵn sàng chưa?', waiting:'Bé có thể chọn đáp án ngay, hoặc chạm khối để đếm nhé!',
  chooseHint:'Chọn con số bé vừa đếm được', yourPuzzle:'BÀI TOÁN CỦA BÉ', wellDone:'Một ngôi sao cho bé!',
  nextPuzzle:'Chơi bài tiếp', explore:'Sân chơi của bé', soundTip:'Chạm để chơi · Bật tiếng để nghe niềm vui',
 });
 Object.assign(copy.en, {
- start:'Let’s play', pickTitle:'What shall we play today?', pickSubtitle:'Choose an operation and explore with your little block friends!',
- back:'Go back', home:'Home', change:'Change game', ready:'Ready to play?', waiting:'Tap the blocks to count, then choose your answer!',
+ wrongTitle:'Not quite, little friend!', wrongNote:'That’s okay! Let’s start again and count together.', replay:'Start again', start:'Let’s play', pickTitle:'What shall we play today?', pickSubtitle:'Choose an operation and explore with your little block friends!',
+ back:'Go back', home:'Home', change:'Change game', ready:'Ready to play?', waiting:'Choose an answer now, or tap the blocks to help you count!',
  chooseHint:'Choose the number you just counted', yourPuzzle:'YOUR LITTLE PUZZLE', wellDone:'A little star for you!',
  nextPuzzle:'Next puzzle', explore:'Your playground', soundTip:'Tap to play · Sound on for a little joy',
 });
@@ -40,10 +40,10 @@ function basket() {
  const n=mode==='add'?moved:mode==='subtract'?a-moved:a*moved;
  return n?units(n):`<span class="empty-basket">${mode==='subtract'?t('zero'):t('empty')}</span>`;
 }
-function options(done) {
+function options() {
  const answer=result(mode,a,b);
  const opts=[answer,answer===0?2:answer-1,answer+1].sort((x,y)=>x-y);
- return opts.map(n=>`<button class="answer-option ${won&&n===answer?'right-answer':''}" data-answer="${n}" ${!done||won?'disabled':''} aria-label="${t('choose')}: ${n}">${n}${won&&n===answer?'<span aria-hidden="true">✓</span>':''}</button>`).join('');
+ return opts.map(n=>`<button class="answer-option ${won&&n===answer?'right-answer':''}" data-answer="${n}" ${won?'disabled':''} aria-label="${t('choose')}: ${n}">${n}${won&&n===answer?'<span aria-hidden="true">✓</span>':''}</button>`).join('');
 }
 function header() {
  return `<header class="topbar"><button class="brand" data-home aria-label="${t('home')}"><span class="brand-icon" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>number<span class="brand-light">blocks</span><small>${t('club')}</small></span></button><div class="header-actions"><button class="parents-link" data-parent aria-label="${t('parent')}"><span aria-hidden="true">♡</span><span class="parents-text">${t('parent')}</span></button><div class="language" aria-label="Language"><button data-lang="vi" class="${lang==='vi'?'selected':''}" aria-pressed="${lang==='vi'}">VI</button><button data-lang="en" class="${lang==='en'?'selected':''}" aria-pressed="${lang==='en'}">EN</button></div><button class="sound-button ${sound?'enabled':''}" data-sound aria-label="${t('sound')}: ${sound?t('on'):t('off')}" aria-pressed="${sound}"><span aria-hidden="true">${sound?'♫':'♪'}</span>${sound?'':'<span class="muted-slash" aria-hidden="true">╱</span>'}</button></div></header>`;
@@ -57,8 +57,17 @@ function selection() {
 function game() {
  const done=moved>=progressTotal(mode,a,b);
  return `<main class="game-screen"><div class="screen-toolbar"><button class="back-button" data-choose>← ${t('change')}</button><h1 tabindex="-1"><span class="heading-symbol">${symbols[mode]}</span> ${t('title'+mode)}</h1><span class="star-badge" aria-label="${t('stars')}: ${stars}">★ <strong>${stars}</strong></span></div><div class="game-board">
- <aside class="answer-panel ${done?'answer-ready':''} ${won?'answer-won':''}" aria-labelledby="answer-heading"><div class="eyebrow">✦ ${t('yourPuzzle')}</div><div class="equation" aria-label="${a} ${symbols[mode]} ${b} = ${won?result(mode,a,b):'?'}"><span>${a}</span><i>${symbols[mode]}</i><span>${b}</span><i>=</i><strong>${won?result(mode,a,b):'?'}</strong></div><div class="answer-mascot" aria-hidden="true">${character(4)}<span>${won?'★':'?'}</span></div><h2 id="answer-heading">${t('answer')}</h2><p class="answer-hint">${t(done?'chooseHint':'waiting')}</p><div class="answer-options" role="group" aria-label="${t('choose')}">${options(done)}</div><div class="feedback ${won?'success':''}" role="status" aria-live="polite">${feedback?t(feedback):done?t('done'):''}</div><button class="next-button ${won?'celebrate':''}" data-new>${t(won?'nextPuzzle':'new')} <span aria-hidden="true">→</span></button></aside>
+ <aside class="answer-panel ${done?'answer-ready':''} ${won?'answer-won':''}" aria-labelledby="answer-heading"><div class="eyebrow">✦ ${t('yourPuzzle')}</div><div class="equation" aria-label="${a} ${symbols[mode]} ${b} = ${won?result(mode,a,b):'?'}"><span>${a}</span><i>${symbols[mode]}</i><span>${b}</span><i>=</i><strong>${won?result(mode,a,b):'?'}</strong></div><div class="answer-mascot" aria-hidden="true">${character(4)}<span>${won?'★':'?'}</span></div><h2 id="answer-heading">${t('answer')}</h2><p class="answer-hint">${t(done?'chooseHint':'waiting')}</p><div class="answer-options" role="group" aria-label="${t('choose')}">${options()}</div><div class="feedback ${won?'success':''}" role="status" aria-live="polite">${feedback?t(feedback):done?t('done'):''}</div><button class="next-button ${won?'celebrate':''}" data-new>${t(won?'nextPuzzle':'new')} <span aria-hidden="true">→</span></button></aside>
  <section class="play-area" aria-label="${t('explore')}"><div class="play-label"><span class="section-label">${t('play')}</span><button class="reset-button" data-reset>↺ ${t('reset')}</button></div><div class="play-instruction"><p class="tap-hint">${t(mode==='add'?'tap':mode==='subtract'?'tapSubtract':mode==='multiply'?'tapMultiply':'tapDivide')}</p><button class="listen-button" data-listen aria-label="${t('help')}" title="${t('help')}">♬</button></div><div class="source-stage">${stage()}</div><div class="direction-arrow" aria-hidden="true">↓</div><div class="basket ${mode==='divide'?'divided':''}"><div class="basket-label">${t('basket')}</div><div class="basket-content">${basket()}</div></div><div class="play-bottom"><span class="count-progress">${t('count')} <b>${moved}</b> / ${progressTotal(mode,a,b)}</span><button class="primary-button" data-all ${done?'disabled':''}>${done?'✓ '+t('completed'):t('action'+mode)+' <span aria-hidden="true">→</span>'}</button></div></section></div></main>`;
+}
+function retryScreen() {
+ return `<main class="retry-screen"><section class="retry-card"><div class="retry-friend" aria-hidden="true">${character(1)}<span>♡</span></div><h1 tabindex="-1">${t('wrongTitle')}</h1><p>${t('wrongNote')}</p><div class="equation"><span>${a}</span><i>${symbols[mode]}</i><span>${b}</span><i>=</i><strong>?</strong></div><button class="start-button" data-replay>↺ ${t('replay')}</button><button class="back-button" data-choose>← ${t('change')}</button></section></main>`;
+}
+function completeBlocks() {
+ if(mode==='add'){for(let i=0;i<a;i++)used.add('a-'+i);for(let i=0;i<b;i++)used.add('b-'+i);}
+ else if(mode==='multiply'){for(let i=0;i<b;i++)used.add('g-'+i);}
+ else{for(let i=0;i<a&&used.size<(mode==='subtract'?b:a);i++)used.add('a-'+i);}
+ moved=progressTotal(mode,a,b);
 }
 function render(focusHeading=false) {
  const active=document.activeElement;
@@ -66,7 +75,7 @@ function render(focusHeading=false) {
  const value=focused?active.getAttribute(focused):null;
  document.documentElement.lang=lang;
  document.body.dataset.screen=screen;
- document.querySelector('#app').innerHTML=header()+(screen==='welcome'?welcome():screen==='choose'?selection():game())+`<dialog><button class="dialog-x" data-close aria-label="${t('close')}">×</button><span class="dialog-icon">♡</span><h2>${t('parentTitle')}</h2><p>${t('parentText')}</p><p>${t('parentNote')}</p><button class="primary-button" data-close>${t('close')}</button></dialog>`;
+ document.querySelector('#app').innerHTML=header()+(screen==='welcome'?welcome():screen==='choose'?selection():screen==='retry'?retryScreen():game())+`<dialog><button class="dialog-x" data-close aria-label="${t('close')}">×</button><span class="dialog-icon">♡</span><h2>${t('parentTitle')}</h2><p>${t('parentText')}</p><p>${t('parentNote')}</p><button class="primary-button" data-close>${t('close')}</button></dialog>`;
  bind();
  if(focusHeading) document.querySelector('h1')?.focus({preventScroll:true});
  else if(focused) {
@@ -76,15 +85,15 @@ function render(focusHeading=false) {
 }
 function clear() { moved=0; used.clear(); feedback=''; won=false; if('speechSynthesis' in window)speechSynthesis.cancel(); }
 function navigate(next) {
- const hash=next==='play'?`#play/${mode}`:`#${next}`;
+ const hash=next==='play'||next==='retry'?`#${next}/${mode}`:`#${next}`;
  if(location.hash!==hash)history.pushState(null,'',hash);
  screen=next;render(true);window.scrollTo(0,0);
 }
 function readRoute() {
  const route=location.hash.slice(1).split('/');
- if(route[0]==='play'&&Object.hasOwn(symbols,route[1])){
+ if((route[0]==='play'||route[0]==='retry')&&Object.hasOwn(symbols,route[1])){
   if(mode!==route[1]){mode=route[1];[a,b]=makeProblem(mode);clear();}
-  screen='play';
+  screen=route[0];
  } else screen=route[0]==='choose'?'choose':'welcome';
  render(true);
 }
@@ -103,11 +112,19 @@ function bind() {
  on('[data-mode]',el=>{const previous=mode===el.dataset.mode?[a,b]:[];mode=el.dataset.mode;[a,b]=makeProblem(mode,Math.random,previous);clear();navigate('play');sounds.play('next');});
  on('[data-lang]',el=>{lang=el.dataset.lang;if('speechSynthesis' in window)speechSynthesis.cancel();render();});
  on('[data-block]',el=>move(el.dataset.block));
- on('[data-all]',()=>{if(mode==='add'){for(let i=0;i<a;i++)used.add('a-'+i);for(let i=0;i<b;i++)used.add('b-'+i);}else if(mode==='multiply'){for(let i=0;i<b;i++)used.add('g-'+i);}else{for(let i=0;i<a&&used.size<(mode==='subtract'?b:a);i++)used.add('a-'+i);}moved=progressTotal(mode,a,b);render();revealAnswers();sounds.play('merge');});
+ on('[data-all]',()=>{completeBlocks();render();revealAnswers();sounds.play('merge');});
  on('[data-reset]',()=>{clear();render();sounds.play('reset');});
  on('[data-sound]',()=>{sound=!sound;sounds.setEnabled(sound);if(sound)sounds.play('toggle');if(!sound&&'speechSynthesis'in window)speechSynthesis.cancel();render();});
  on('[data-listen]',()=>speak(t('desc'+mode)+' '+t(mode==='add'?'tap':mode==='subtract'?'tapSubtract':mode==='multiply'?'tapMultiply':'tapDivide')));
- on('[data-answer]',el=>{if(won||moved<progressTotal(mode,a,b))return;if(Number(el.dataset.answer)===result(mode,a,b)){won=true;stars++;feedback='correct';}else feedback='retry';render();sounds.play(won?'correct':'retry');});
+ on('[data-answer]',el=>{
+  if(won)return;
+  if(Number(el.dataset.answer)===result(mode,a,b)){
+   completeBlocks();won=true;stars++;feedback='correct';render();sounds.play('correct');
+  }else{
+   clear();navigate('retry');sounds.play('retry');
+  }
+ });
+ on('[data-replay]',()=>{clear();navigate('play');sounds.play('reset');});
  on('[data-new]',()=>{[a,b]=makeProblem(mode,Math.random,[a,b]);clear();render();sounds.play('next');});
  const dialog=document.querySelector('dialog');on('[data-parent]',()=>dialog.showModal());on('[data-close]',()=>dialog.close());dialog.onclick=e=>{if(e.target===dialog)dialog.close();};
 }

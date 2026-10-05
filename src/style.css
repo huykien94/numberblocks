@@ -11,3 +11,14 @@
 @media(min-width:1000px) and (max-height:850px){.game-screen{padding-top:16px;padding-bottom:12px}.game-screen .screen-toolbar{margin-bottom:13px}.answer-panel .answer-hint{min-height:36px}.answer-panel h2{margin-top:7px}.answer-panel .feedback{min-height:43px}}
 @media(max-width:420px){.topbar{padding:0 12px}.brand{font-size:18px}.brand-icon{display:none}.brand small{font-size:5px;letter-spacing:1px}.parents-link{display:flex;width:40px}}
 @media(max-width:350px){.brand>span:last-child{display:none}.brand-icon{display:grid}}
+.retry-screen{min-height:calc(100svh - 88px);padding:32px 24px;display:grid;place-items:center}
+.retry-card{width:100%;max-width:660px;text-align:center;padding:45px 35px 30px;background:#fffaf0;border:2px solid #efe3cb;border-radius:32px;box-shadow:0 8px 0 #ebdfc528}
+.retry-friend{height:125px;display:flex;align-items:center;justify-content:center;gap:30px;padding-top:26px}
+.retry-friend .character{--unit:72px;transform:rotate(-8deg)}
+.retry-friend>span{font-size:65px;color:#dca77a;transform:rotate(12deg)}
+.retry-card h1{font-size:clamp(28px,3.5vw,39px);line-height:1.4;letter-spacing:-1px;margin:25px 0 12px}
+.retry-card>p{font-size:18px;line-height:1.8;color:#8a9278;max-width:460px;margin:0 auto}
+.retry-card .equation{margin:22px auto;font-size:40px;justify-content:center}
+.retry-card .start-button{margin:22px auto;min-height:76px;font-size:23px}
+.retry-card .back-button{background:transparent;border-color:transparent;color:#889677}
+@media(max-width:700px){.retry-screen{min-height:calc(100svh - 78px);padding:24px 15px}.retry-card{padding:27px 18px 20px}.retry-card>p{font-size:15px}.retry-card .start-button{font-size:19px;min-height:68px;padding:14px 21px}}
