@@ -15,3 +15,14 @@ test('all generated problems are suitable for the selected mode', () => {
     for (let i = 0; i < 100; i++) { const [a,b] = makeProblem(mode); assert.ok(valid(mode,a,b)); assert.ok(Number.isInteger(result(mode,a,b))); }
   }
 });
+test('new puzzles exclude the current operands even with repeated random input', () => {
+  for (const mode of ['add', 'subtract', 'multiply', 'divide']) {
+    let previous = makeProblem(mode, () => 0);
+    for (let i=0;i<30;i++) {
+      const next = makeProblem(mode, () => 0, previous);
+      assert.notDeepEqual(next, previous);
+      assert.ok(valid(mode, ...next));
+      previous = next;
+    }
+  }
+});
