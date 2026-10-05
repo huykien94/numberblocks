@@ -22,12 +22,36 @@ Object.assign(copy.en, {
  chooseHint:'Choose the number you just counted', yourPuzzle:'YOUR LITTLE PUZZLE', wellDone:'A little star for you!',
  nextPuzzle:'Next puzzle', explore:'Your playground', soundTip:'Tap to play · Sound on for a little joy', voiceHelp:'Speech help', testVoice:'Test voice', voiceTitle:'Speech on your tablet', voiceInstructions:'If music plays but speech does not, try opening the game in Chrome. On Samsung, open Settings → General management → Text-to-speech, choose the Google engine if available, and install voice data for the selected language. Menu names vary by Android version. Reopen the game and tap Test voice.', voiceUnsupported:'This browser does not support speech. Try opening the game in Chrome.', voiceMissing:'The speech engine does not have a voice for this language. Check the device’s text-to-speech settings.', voiceBlocked:'Speech playback is blocked. Tap Hear the puzzle to try again.', music:'Music', help:'Hear the puzzle', soundUnavailable:'Speech could not play. Tap Hear the puzzle to retry; you can still keep playing.',
 });
-let screen='welcome', lang='vi', mode='add', moved=0, stars=0, sound=true, music=true, audioNotice=false, feedback='', won=false;
+Object.assign(copy.vi, {
+ smallSteps:'Trong phạm vi 5', exploreMore:'Trong phạm vi 10', rangeLabel:'Phạm vi số',
+ removed:'Khay bớt đi', removedEmpty:'Chạm một khối để chuyển sang khay này.', remaining:'Còn lại',
+ joinTray:'Khay đếm chung', groupTray:'Các nhóm bằng nhau', shareTray:'Chia đều cho từng bạn', friend:'Bạn',
+ pieces:'khối', eachGroup:'Mỗi nhóm', groupsOf:'nhóm, mỗi nhóm',
+ askAdd:'Có tất cả bao nhiêu khối?', askSubtract:'Còn lại bao nhiêu khối?', askMultiply:'Tất cả các nhóm có mấy khối?', askDivide:'Mỗi bạn được mấy khối?', hintAdd:'Gộp hai nhóm vào cùng một khay. Chạm một khối và đếm một lần.',
+ hintSubtract:'Chuyển từng khối sang khay bớt đi. Đếm những khối còn lại ở trên.',
+ hintMultiply:'Các nhóm có cùng số khối. Chạm từng nhóm rồi đếm tất cả.',
+ hintDivide:'Mỗi lượt cho một bạn một khối. Khi chia xong, đếm số khối của một bạn.',
+ checkTogether:'Cùng đếm lại', learningTitle:'Cùng bé hiểu lượng và phép tính',
+ learningNote:'Bắt đầu với phạm vi 1–5. Mời con chỉ vào mỗi khối và đếm một lần. Khay có các hàng 5 ô giúp con nhận ra lượng. Khi trừ, quan sát cả phần còn lại và phần đã bớt; khi nhân, đếm các nhóm bằng nhau; khi chia, lần lượt chia cho từng bạn. Hãy để con tự thao tác trước khi dùng nút làm mẫu. Có thể dùng thêm hạt, que hoặc khối thật ngoài màn hình. Đây là hoạt động lấy cảm hứng từ Montessori, không thay thế giáo cụ và hướng dẫn trực tiếp.',
+});
+Object.assign(copy.en, {
+ smallSteps:'Numbers up to 5', exploreMore:'Numbers up to 10', rangeLabel:'Number range',
+ removed:'Taken-away tray', removedEmpty:'Tap a block to move it into this tray.', remaining:'Remaining',
+ joinTray:'Our counting tray', groupTray:'Equal groups', shareTray:'Share equally with each friend', friend:'Friend',
+ pieces:'blocks', eachGroup:'Each group', groupsOf:'groups of',
+ askAdd:'How many blocks altogether?', askSubtract:'How many blocks are left?', askMultiply:'How many blocks in all the groups?', askDivide:'How many blocks does each friend get?', hintAdd:'Bring both groups into one tray. Touch one block and count once.',
+ hintSubtract:'Move blocks into the taken-away tray. Count the blocks left above.',
+ hintMultiply:'Every group has the same number of blocks. Tap each group and count them all.',
+ hintDivide:'Give each friend one block in turn. When finished, count one friend’s blocks.',
+ checkTogether:'Count together', learningTitle:'Explore quantities and operations together',
+ learningNote:'Start with numbers 1–5. Invite your child to point at each block and count once. Rows of five help children see quantities. For subtraction, notice both what remains and what was removed; for multiplication, count equal groups; for division, share one at a time. Let your child move blocks before using the demonstration button. Try the same activity with real beads, sticks or blocks. These activities are Montessori-inspired and do not replace physical materials or adult guidance.',
+});
+let screen='welcome', lang='vi', maxQuantity=5, mode='add', moved=0, stars=0, sound=true, music=true, audioNotice=false, feedback='', won=false;
 const narrator=createNarrator({onSpeaking:value=>sounds.setDucked(value),onUnavailable:reason=>{audioNotice=reason==='unsupported'?'voiceUnsupported':reason==='language-unavailable'?'voiceMissing':reason==='not-allowed'?'voiceBlocked':'soundUnavailable';updateSpeechNotice();}});
 let used = new Set();
 const symbols={add:'+',subtract:'−',multiply:'×',divide:'÷'};
-let [a,b] = makeProblem(mode);
-let choices=answerChoices(result(mode,a,b));
+let [a,b] = makeProblem(mode,Math.random,[],maxQuantity);
+let choices=answerChoices(result(mode,a,b),Math.random,maxQuantity);
 const t = key => copy[lang][key];
 function character(n, extra='') {
  const cols=n===4||n===6||n===8||n===10?2:n===9?3:1;
@@ -36,15 +60,28 @@ function character(n, extra='') {
 function block(id, color, active=true) {return `<button class="unit ${color} ${used.has(id)?'used':''}" data-block="${id}" ${!active||used.has(id)||moving||grouping?'disabled':''} aria-label="${t('block')} ${Number(id.split('-').pop())+1}"><span class="mini-eyes">••</span></button>`;}
 function units(n,color='coral') {return Array.from({length:n},(_,i)=>`<span class="unit result-unit ${color}" style="--delay:${i%5*35}ms"><span class="mini-eyes">••</span></span>`).join('');}
 function stage() {
- if(mode==='add') return `<div class="source-group coral-tray">${Array.from({length:a},(_,i)=>block('a-'+i,'coral')).join('')||'<span>0</span>'}</div><span class="stage-symbol">+</span><div class="source-group gold-tray">${Array.from({length:b},(_,i)=>block('b-'+i,'gold')).join('')||'<span>0</span>'}</div>`;
- if(mode==='subtract') return `<div class="source-group coral-tray wide">${Array.from({length:a},(_,i)=>block('a-'+i,'coral',moved<b)).join('')||'<span>0</span>'}</div>`;
- if(mode==='multiply') return Array.from({length:b},(_,i)=>`<button class="multiply-group ${used.has('g-'+i)?'used':''}" data-block="g-${i}" ${used.has('g-'+i)||moving||grouping?'disabled':''} aria-label="${t('group')} ${i+1}">${units(a,i%2?'gold':'coral')}</button>`).join('');
- return `<div class="source-group coral-tray wide">${Array.from({length:a},(_,i)=>block('a-'+i,'coral')).join('')}</div>`;
+ if(mode==='add')return `<div class="source-group coral-tray"><span class="group-caption">${a} ${t('pieces')}</span>${Array.from({length:a},(_,i)=>block('a-'+i,'coral')).join('')}</div><span class="stage-symbol">+</span><div class="source-group gold-tray"><span class="group-caption">${b} ${t('pieces')}</span>${Array.from({length:b},(_,i)=>block('b-'+i,'gold')).join('')}</div>`;
+ if(mode==='subtract')return `<div class="source-group coral-tray wide subtraction-source"><span class="group-caption">${t('remaining')}: ${a-moved}</span>${Array.from({length:a},(_,i)=>block('a-'+i,'coral',moved<b)).join('')}</div>`;
+ if(mode==='multiply')return Array.from({length:b},(_,i)=>`<button class="multiply-group ${used.has('g-'+i)?'used':''}" data-block="g-${i}" ${used.has('g-'+i)||moving||grouping?'disabled':''} aria-label="${t('group')} ${i+1}: ${a} ${t('pieces')}"><span class="group-caption">${a} ${t('pieces')}</span>${units(a,'coral')}</button>`).join('');
+ return `<div class="source-group coral-tray wide"><span class="group-caption">${a} ${t('pieces')}</span>${Array.from({length:a},(_,i)=>block('a-'+i,'coral')).join('')}</div>`;
+}
+function countingTray(contents){
+ return `<div class="counting-tray" aria-label="${maxQuantity} ${lang==='vi'?'ô đếm':'counting spaces'}">${Array.from({length:maxQuantity},(_,i)=>`<span class="counting-space">${contents[i]||''}</span>`).join('')}</div>`;
 }
 function basket() {
- if(mode==='divide') return Array.from({length:b},(_,i)=>`<div class="share-group"><span>${t('group')} ${i+1}</span><div>${units(Math.floor(moved/b)+(i<moved%b?1:0),i%2?'gold':'coral')}</div></div>`).join('');
- const n=mode==='add'?moved:mode==='subtract'?a-moved:a*moved;
- return n?(mode==='add'?Array.from(used).map(id=>units(1,id.startsWith('b-')?'gold':'coral')).join(''):units(n)):`<span class="empty-basket">${mode==='subtract'?t('zero'):t('empty')}</span>`;
+ if(mode==='divide')return Array.from({length:b},(_,i)=>{
+  const n=Math.floor(moved/b)+(i<moved%b?1:0);
+  return `<div class="share-group"><span class="friend-label"><i aria-hidden="true">☺</i>${t('friend')} ${i+1}</span><div>${units(n,'coral')}</div><small>${n} ${t('pieces')}</small></div>`;
+ }).join('');
+ if(mode==='multiply')return Array.from({length:b},(_,i)=>`<div class="result-equal-group"><span>${t('group')} ${i+1}</span><div>${used.has('g-'+i)?units(a):Array.from({length:a},()=>'<i class="group-space"></i>').join('')}</div></div>`).join('');
+ if(mode==='subtract')return moved?`<div class="removed-blocks">${units(moved,'coral')}</div><span class="removed-count">${moved} ${t('pieces')}</span>`:`<span class="empty-basket">${t('removedEmpty')}</span>`;
+ return countingTray(Array.from(used).map(id=>units(1,id.startsWith('b-')?'gold':'coral')));
+}
+function trayLabel(){return t(mode==='add'?'joinTray':mode==='subtract'?'removed':mode==='multiply'?'groupTray':'shareTray');}
+function learningHint(){return t({add:'hintAdd',subtract:'hintSubtract',multiply:'hintMultiply',divide:'hintDivide'}[mode]);}
+function operationStory(){
+ if(lang==='vi')return {add:`${a} khối và ${b} khối.`,subtract:`Có ${a} khối. Bớt đi ${b} khối.`,multiply:`${b} nhóm, mỗi nhóm ${a} khối.`,divide:`Chia ${a} khối đều cho ${b} bạn.`}[mode];
+ return {add:`${a} blocks and ${b} blocks.`,subtract:`Start with ${a} blocks. Take away ${b}.`,multiply:`${b} groups with ${a} blocks in each.`,divide:`Share ${a} blocks equally among ${b} friends.`}[mode];
 }
 function options() {
  const answer=result(mode,a,b);
@@ -57,16 +94,16 @@ function welcome() {
  return `<main class="welcome-screen"><section class="welcome-content"><div class="welcome-copy"><div class="eyebrow">✦ ${t('badge')}</div><h1 tabindex="-1">${t('hero')}<br><span>${t('hero2')}</span></h1><p>${t('intro')}</p><button class="start-button" data-start><span class="start-icon" aria-hidden="true">▶</span> ${t('start')} <span aria-hidden="true">→</span></button><div class="welcome-note">${t('soundTip')}</div></div><div class="hero-art" aria-hidden="true"><div class="art-orbit"></div><span class="doodle d1">✧</span><span class="doodle d2">✦</span><span class="doodle d3">+</span><span class="doodle d4">∿</span><span class="hello">${lang==='vi'?'Chào bé!':'Hello there!'}</span>${character(1,'hero-one')}${character(3,'hero-three')}${character(2,'hero-two')}<div class="ground"></div></div></section><div class="welcome-footer"><span>✦ ${t('ages')}</span><span>♡ ${t('safe')}</span><span>VI / EN</span></div></main>`;
 }
 function selection() {
- return `<main class="selection-screen"><div class="screen-toolbar"><button class="back-button" data-home>← ${t('home')}</button><span class="little-caption">✦ ${t('ready')}</span></div><div class="selection-heading"><h1 tabindex="-1">${t('pickTitle')}</h1><p>${t('pickSubtitle')}</p></div><nav class="operation-grid" aria-label="${t('change')}">${Object.keys(symbols).map((m,i)=>`<button data-mode="${m}" class="operation-card operation-${m}"><div class="operation-top"><span class="operation-symbol">${symbols[m]}</span><span class="operation-arrow" aria-hidden="true">→</span></div><div class="operation-bottom"><div><strong>${t(m)}</strong><small>${t('sub'+m)}</small></div><div class="card-friend" aria-hidden="true">${character(i===0?2:i===1?1:i===2?3:4)}</div></div></button>`).join('')}</nav></main>`;
+ return `<main class="selection-screen"><div class="screen-toolbar"><button class="back-button" data-home>← ${t('home')}</button><span class="little-caption">✦ ${t('ready')}</span></div><div class="selection-heading"><h1 tabindex="-1">${t('pickTitle')}</h1><p>${t('pickSubtitle')}</p></div><div class="number-range" role="group" aria-label="${t('rangeLabel')}"><button data-range="5" aria-pressed="${maxQuantity===5}">${t('smallSteps')}</button><button data-range="10" aria-pressed="${maxQuantity===10}">${t('exploreMore')}</button></div><nav class="operation-grid" aria-label="${t('change')}">${Object.keys(symbols).map((m,i)=>`<button data-mode="${m}" class="operation-card operation-${m}"><div class="operation-top"><span class="operation-symbol">${symbols[m]}</span><span class="operation-arrow" aria-hidden="true">→</span></div><div class="operation-bottom"><div><strong>${t(m)}</strong><small>${t('sub'+m)}</small></div><div class="card-friend" aria-hidden="true">${character(i===0?2:i===1?1:i===2?3:4)}</div></div></button>`).join('')}</nav></main>`;
 }
 function game() {
  const done=moved>=progressTotal(mode,a,b);
  return `<main class="game-screen"><div class="screen-toolbar"><button class="back-button" data-choose>← ${t('change')}</button><h1 tabindex="-1"><span class="heading-symbol">${symbols[mode]}</span> ${t('title'+mode)}</h1><span class="star-badge" aria-label="${t('stars')}: ${stars}">★ <strong>${stars}</strong></span></div><div class="game-board">
- <aside class="answer-panel ${done?'answer-ready':''} ${won?'answer-won':''}" aria-labelledby="answer-heading"><div class="eyebrow">✦ ${t('yourPuzzle')}</div><div class="equation" aria-label="${a} ${symbols[mode]} ${b} = ${won?result(mode,a,b):'?'}"><span>${a}</span><i>${symbols[mode]}</i><span>${b}</span><i>=</i><strong>${won?result(mode,a,b):'?'}</strong></div><div class="answer-mascot" aria-hidden="true">${character(4)}<span>${won?'★':'?'}</span></div><h2 id="answer-heading">${t('answer')}</h2><p class="answer-hint">${t(done?'chooseHint':'waiting')}</p><div class="answer-options" role="group" aria-label="${t('choose')}">${options()}</div><div class="feedback ${won?'success':''}" role="status" aria-live="polite">${feedback?t(feedback):done?t('done'):''}</div><button class="next-button ${won?'celebrate':''}" data-new>${t(won?'nextPuzzle':'new')} <span aria-hidden="true">→</span></button></aside>
- <section class="play-area" aria-label="${t('explore')}"><div class="play-label"><span class="section-label">${t('play')}</span><button class="reset-button" data-reset>↺ ${t('reset')}</button></div><div class="play-instruction"><p class="tap-hint">${t(mode==='add'?'tap':mode==='subtract'?'tapSubtract':mode==='multiply'?'tapMultiply':'tapDivide')}</p><button class="listen-button" data-listen aria-label="${t('help')}" title="${t('help')}">♬</button></div><div class="source-stage">${stage()}</div><div class="direction-arrow" aria-hidden="true">${counting===null?'↓':`<span class="count-bubble">${counting}</span>`}</div><div class="basket ${mode==='divide'?'divided':''}"><div class="basket-label">${t('basket')}</div><div class="basket-content">${basket()}</div></div><div class="play-bottom"><span class="count-progress">${t('count')} <b>${moved}</b> / ${progressTotal(mode,a,b)}</span><button class="primary-button" data-all ${done||moving||grouping?'disabled':''}>${done?'✓ '+t('completed'):t('action'+mode)+' <span aria-hidden="true">→</span>'}</button></div></section></div></main>`;
+ <aside class="answer-panel ${done?'answer-ready':''} ${won?'answer-won':''}" aria-labelledby="answer-heading"><div class="eyebrow">✦ ${t('yourPuzzle')}</div><div class="equation" aria-label="${a} ${symbols[mode]} ${b} = ${won?result(mode,a,b):'?'}"><span>${a}</span><i>${symbols[mode]}</i><span>${b}</span><i>=</i><strong>${won?result(mode,a,b):'?'}</strong></div><div class="answer-mascot" aria-hidden="true">${character(4)}<span>${won?'★':'?'}</span></div><h2 id="answer-heading">${t({add:'askAdd',subtract:'askSubtract',multiply:'askMultiply',divide:'askDivide'}[mode])}</h2><p class="answer-hint">${operationStory()}</p><div class="answer-options" role="group" aria-label="${t('choose')}">${options()}</div><div class="feedback ${won?'success':''}" role="status" aria-live="polite">${feedback?t(feedback):done?t('done'):''}</div><button class="next-button ${won?'celebrate':''}" data-new>${t(won?'nextPuzzle':'new')} <span aria-hidden="true">→</span></button></aside>
+ <section class="play-area" aria-label="${t('explore')}"><div class="play-label"><span class="section-label">${t('play')}</span><button class="reset-button" data-reset>↺ ${t('reset')}</button></div><div class="play-instruction"><p class="tap-hint">${learningHint()}</p><button class="listen-button" data-listen aria-label="${t('help')}" title="${t('help')}">♬</button></div><div class="source-stage">${stage()}</div><div class="direction-arrow" aria-hidden="true">${counting===null?'↓':`<span class="count-bubble">${counting}</span>`}</div><div class="basket basket-${mode} ${mode==='divide'?'divided':''}"><div class="basket-label">${trayLabel()}</div><div class="basket-content">${basket()}</div></div><div class="play-bottom"><span class="count-progress">${t('count')} <b>${moved}</b> / ${progressTotal(mode,a,b)}</span><button class="primary-button" data-all ${done||moving||grouping?'disabled':''}>${done?'✓ '+t('completed'):t('action'+mode)+' <span aria-hidden="true">→</span>'}</button></div></section></div></main>`;
 }
 function retryScreen() {
- return `<main class="retry-screen"><section class="retry-card"><div class="retry-friend" aria-hidden="true">${character(1)}<span>♡</span></div><h1 tabindex="-1">${t('wrongTitle')}</h1><p>${t('wrongNote')}</p><div class="equation"><span>${a}</span><i>${symbols[mode]}</i><span>${b}</span><i>=</i><strong>?</strong></div><button class="start-button" data-replay>↺ ${t('replay')}</button><button class="back-button" data-choose>← ${t('change')}</button></section></main>`;
+ return `<main class="retry-screen"><section class="retry-card"><div class="retry-friend" aria-hidden="true">${character(1)}<span>♡</span></div><h1 tabindex="-1">${t('wrongTitle')}</h1><p>${t('wrongNote')}</p><div class="equation"><span>${a}</span><i>${symbols[mode]}</i><span>${b}</span><i>=</i><strong>?</strong></div><button class="start-button" data-replay>↺ ${t('replay')}</button><button class="back-button" data-count-together>☝ ${t('checkTogether')}</button><button class="back-button" data-choose>← ${t('change')}</button></section></main>`;
 }
 function render(focusHeading=false) {
  const active=document.activeElement;
@@ -74,7 +111,7 @@ function render(focusHeading=false) {
  const value=focused?active.getAttribute(focused):null;
  document.documentElement.lang=lang;
  document.body.dataset.screen=screen;
- document.querySelector('#app').innerHTML=header()+`<p class="speech-notice" role="status" ${audioNotice?'':'hidden'}>${audioNotice?t(audioNotice):''} <button class="speech-help-button" data-parent>${t('voiceHelp')}</button></p>`+(screen==='welcome'?welcome():screen==='choose'?selection():screen==='retry'?retryScreen():game())+`<dialog><button class="dialog-x" data-close aria-label="${t('close')}">×</button><span class="dialog-icon">♡</span><h2>${t('parentTitle')}</h2><p>${t('parentText')}</p><p>${t('parentNote')}</p><section class="voice-help"><h3>${t('voiceTitle')}</h3><p>${t('voiceInstructions')}</p><button class="back-button" data-test-voice>♬ ${t('testVoice')}</button><p class="voice-test-status" role="status">${audioNotice?t(audioNotice):''}</p></section><button class="primary-button" data-close>${t('close')}</button></dialog>`;
+ document.querySelector('#app').innerHTML=header()+`<p class="speech-notice" role="status" ${audioNotice?'':'hidden'}>${audioNotice?t(audioNotice):''} <button class="speech-help-button" data-parent>${t('voiceHelp')}</button></p>`+(screen==='welcome'?welcome():screen==='choose'?selection():screen==='retry'?retryScreen():game())+`<dialog><button class="dialog-x" data-close aria-label="${t('close')}">×</button><span class="dialog-icon">♡</span><h2>${t('parentTitle')}</h2><p>${t('parentText')}</p><p>${t('parentNote')}</p><section class="learning-help"><h3>${t('learningTitle')}</h3><p>${t('learningNote')}</p></section><section class="voice-help"><h3>${t('voiceTitle')}</h3><p>${t('voiceInstructions')}</p><button class="back-button" data-test-voice>♬ ${t('testVoice')}</button><p class="voice-test-status" role="status">${audioNotice?t(audioNotice):''}</p></section><button class="primary-button" data-close>${t('close')}</button></dialog>`;
  bind();
  if(focusHeading) document.querySelector('h1')?.focus({preventScroll:true});
  else if(focused) {
@@ -93,7 +130,7 @@ function readRoute() {
  cancelActivity();
  const route=location.hash.slice(1).split('/');
  if((route[0]==='play'||route[0]==='retry')&&Object.hasOwn(symbols,route[1])){
-  if(mode!==route[1]){mode=route[1];[a,b]=makeProblem(mode);choices=answerChoices(result(mode,a,b));clear();}
+  if(mode!==route[1]){mode=route[1];[a,b]=makeProblem(mode,Math.random,[],maxQuantity);choices=answerChoices(result(mode,a,b),Math.random,maxQuantity);clear();}
   screen=route[0];
  } else screen=route[0]==='choose'?'choose':'welcome';
  render(true);
@@ -129,8 +166,8 @@ async function stepMove(id,token,{announce=true}={}){
   : Promise.resolve();
  moving=true;render();
  const source=document.querySelector(`[data-block="${id}"]`);
- const destination=mode==='divide'?document.querySelectorAll('.share-group')[moved%b]:document.querySelector(mode==='subtract'?'.direction-arrow':'.basket-content');
- await motion.fly(source,destination,{remove:mode==='subtract'});
+ const destination=mode==='divide'?document.querySelectorAll('.share-group')[moved%b]:mode==='add'?document.querySelectorAll('.counting-space')[moved]:mode==='multiply'?document.querySelectorAll('.result-equal-group')[Number(id.split('-')[1])]:document.querySelector('.basket-content');
+ await motion.fly(source,destination);
  if(token!==activity){clearTimeout(timeout);return false;}
  used.add(id);moved++;moving=false;counting=nextCount;
  render();await speechCompletion;clearTimeout(timeout);
@@ -154,8 +191,10 @@ function bind() {
  const on=(selector,handler)=>document.querySelectorAll(selector).forEach(el=>el.onclick=()=>handler(el));
  on('[data-home]',()=>{narrator.cancel();navigate('welcome');});
  on('[data-start], [data-choose]',()=>{narrator.cancel();navigate('choose');sounds.play('next');});
- on('[data-mode]',el=>{const previous=mode===el.dataset.mode?[a,b]:[];mode=el.dataset.mode;[a,b]=makeProblem(mode,Math.random,previous);choices=answerChoices(result(mode,a,b));clear();navigate('play');sounds.play('next');readPuzzle();});
+ on('[data-mode]',el=>{const previous=mode===el.dataset.mode?[a,b]:[];mode=el.dataset.mode;[a,b]=makeProblem(mode,Math.random,previous,maxQuantity);choices=answerChoices(result(mode,a,b),Math.random,maxQuantity);clear();navigate('play');sounds.play('next');readPuzzle();});
  on('[data-lang]',el=>{cancelActivity();lang=el.dataset.lang;audioNotice=false;render();if(screen==='play')readPuzzle();else if(screen==='retry')speak(t('wrongNote'));});
+ on('[data-range]',el=>{maxQuantity=Number(el.dataset.range);render();sounds.play('toggle');});
+ on('[data-count-together]',async()=>{clear();navigate('play');await runAll();});
  on('[data-block]',el=>move(el.dataset.block));
  on('[data-all]',()=>{void runAll();});
  on('[data-reset]',()=>{clear();render();sounds.play('reset');readPuzzle();});
@@ -173,7 +212,7 @@ function bind() {
   }
  });
  on('[data-replay]',()=>{clear();navigate('play');sounds.play('reset');readPuzzle();});
- on('[data-new]',()=>{[a,b]=makeProblem(mode,Math.random,[a,b]);choices=answerChoices(result(mode,a,b));clear();render();sounds.play('next');readPuzzle();});
+ on('[data-new]',()=>{[a,b]=makeProblem(mode,Math.random,[a,b],maxQuantity);choices=answerChoices(result(mode,a,b),Math.random,maxQuantity);clear();render();sounds.play('next');readPuzzle();});
  const dialog=document.querySelector('dialog');on('[data-parent]',()=>{cancelActivity();render();document.querySelector('dialog').showModal();});on('[data-close]',()=>dialog.close());dialog.onclick=e=>{if(e.target===dialog)dialog.close();};
 }
 function prepareAudio(){void sounds.start();narrator.warmup();}

@@ -36,3 +36,14 @@ test('answers are shuffled into all positions without duplicates or changing cor
  assert.equal(positions.size,3);
  assert.deepEqual(answerChoices(0,()=>.5).sort((a,b)=>a-b),[0,1,2]);
 });
+test('preschool ranges bound operands, results and answer choices in all operations', async()=>{
+ const {problemPool,answerChoices}=await import('../src/math.js');
+ for(const max of [5,10])for(const mode of ['add','subtract','multiply','divide']){
+  const pool=problemPool(mode,[],max);assert.ok(pool.length>1);
+  for(const [a,b] of pool){
+   const answer=result(mode,a,b);assert.ok(a<=max&&b<=max&&answer>=0&&answer<=max);assert.ok(Number.isInteger(answer));
+   const choices=answerChoices(answer,()=>.5,max);assert.equal(new Set(choices).size,3);assert.ok(choices.includes(answer));assert.ok(choices.every(n=>n>=0&&n<=max));
+   assert.notDeepEqual(makeProblem(mode,()=>0,[a,b],max),[a,b]);
+  }
+ }
+});

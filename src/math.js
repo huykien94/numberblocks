@@ -19,25 +19,26 @@ export function nextValue(mode, a, b, operand, direction) {
   return operand === 'a' ? a : b;
 }
 export function progressTotal(mode, a, b) { return mode === 'add' || mode === 'divide' ? (mode === 'add' ? a + b : a) : b; }
-export function problemPool(mode, previous = []) {
+export function problemPool(mode, previous = [], maxQuantity = 20) {
   const pool = [];
   const maxA = mode === 'divide' ? 16 : mode === 'subtract' ? 10 : 5;
   const maxB = mode === 'subtract' ? 10 : mode === 'add' ? 5 : 4;
   for (let a = mode === 'subtract' ? 2 : 1; a <= maxA; a++) {
     for (let b = 1; b <= maxB; b++) {
-      if (valid(mode, a, b) && (mode !== 'divide' || a / b <= 4) &&
+      if (valid(mode, a, b) && a <= maxQuantity && b <= maxQuantity && result(mode,a,b) <= maxQuantity && (mode !== 'divide' || a / b <= 4) &&
           (a !== previous[0] || b !== previous[1])) pool.push([a, b]);
     }
   }
   return pool;
 }
 
-export function makeProblem(mode, random = Math.random, previous = []) {
-  const pool=problemPool(mode,previous);
+export function makeProblem(mode, random = Math.random, previous = [], maxQuantity = 20) {
+  const pool=problemPool(mode,previous,maxQuantity);
   return pool[Math.floor(random()*pool.length)];
 }
-export function answerChoices(answer, random = Math.random) {
-  const choices=[answer,answer===0?2:answer-1,answer+1];
+export function answerChoices(answer, random = Math.random, maxQuantity = Infinity) {
+  const distractors=[answer-1,answer+1,answer-2,answer+2].filter(n=>n>=0&&n<=maxQuantity).slice(0,2);
+  const choices=[answer,...distractors];
   for(let i=choices.length-1;i>0;i--){
     const j=Math.floor(random()*(i+1));
     [choices[i],choices[j]]=[choices[j],choices[i]];
