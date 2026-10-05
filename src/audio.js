@@ -72,6 +72,7 @@ export function createSoundPlayer(getContext = () => {
   }
   return {
     play,
+    async audioContext() { if(await ready())return context;throw new Error('Audio unavailable'); },
     start() { started=true;return startMusic(); },
     setEnabled(value) { enabled=value;if(!value){stop();stopMusic();}else return startMusic(); },
     setMusicEnabled(value) { musicEnabled=value;if(!value)stopMusic();else return startMusic(); },

@@ -1,7 +1,11 @@
 import './style.css';
-import { result, progressTotal, makeProblem } from './math.js';
+import { result, progressTotal, makeProblem, answerChoices } from './math.js';
 import { createSoundPlayer } from './audio.js';
-import { createNarrator, questionText } from './narration.js';
+import { questionText, numberText } from './narration.js';
+import { createRecordedNarrator } from './recorded-narration.js';
+import { createBlockMotion } from './motion.js';
+const motion=createBlockMotion();
+let activity=0, moving=false, grouping=false, counting=null;
 const sounds = createSoundPlayer();
 const copy = {
  vi: {club:'CÂU LẠC BỘ TOÁN CỦA BÉ', badge:'CHƠI MÀ HỌC, HỌC MÀ VUI', hero:'Những khối nhỏ.', hero2:'Khám phá thật to!', intro:'Cùng những người bạn khối số chạm, đếm và khám phá thế giới toán học.', parent:'Dành cho ba mẹ', sound:'Âm thanh', on:'Bật', off:'Tắt', add:'Cộng', subtract:'Trừ', multiply:'Nhân', divide:'Chia', subadd:'Gộp lại nào', subsubtract:'Bớt đi nhé', submultiply:'Thêm từng nhóm', subdivide:'Chia đều thôi', titleadd:'Cùng nhau gộp khối!', titlesubtract:'Cùng nhau bớt khối!', titlemultiply:'Cùng nhau tạo nhóm!', titledivide:'Cùng nhau chia đều!', descadd:'Hai nhóm bạn nhỏ gặp nhau. Có tất cả bao nhiêu khối?', descsubtract:'Một vài bạn rời nhóm. Còn lại bao nhiêu khối?', descmultiply:'Mỗi nhóm có số khối bằng nhau. Có tất cả bao nhiêu khối?', descdivide:'Chia các khối vào từng nhóm. Mỗi nhóm có bao nhiêu khối?', step:'BÀI TOÁN BẤT NGỜ', groupA:'Nhóm thứ nhất', groupB:'Nhóm thứ hai', total:'Số khối ban đầu', remove:'Số khối bớt đi', each:'Khối mỗi nhóm', groups:'Số nhóm', tip:'Bấm + hoặc − để thay đổi số', play:'CHẠM VÀ KHÁM PHÁ', tap:'Chạm từng khối để gộp vào giỏ nhé!', tapSubtract:'Chạm từng khối để bớt đi nhé!', tapMultiply:'Chạm vào nhóm để thêm các khối nhé!', tapDivide:'Chạm từng khối để chia lần lượt nhé!', basket:'Chiếc giỏ kết quả', empty:'Các khối đang đợi bé!', actionadd:'Gộp tất cả', actionsubtract:'Bớt khối', actionmultiply:'Tạo các nhóm', actiondivide:'Chia đều', reset:'Làm lại', new:'Bài mới', answer:'Bé đếm được bao nhiêu?', correct:'Giỏi lắm! Bé đếm đúng rồi!', retry:'Gần đúng rồi! Cùng đếm lại các khối nhé.', done:'Tuyệt vời! Cùng đếm kết quả nào.', help:'Nghe hướng dẫn', footer:'Mỗi khối nhỏ, một khám phá lớn.', footsub:'Một sân chơi toán học dành cho những trí tò mò nhỏ.', safe:'Không quảng cáo', ages:'Dành cho bé 3–6 tuổi', feature1:'Chạm để hiểu', feature1text:'Tự tay gộp khối, tự mình khám phá.', feature2:'Học theo nhịp của bé', feature2text:'Không đếm giờ. Không áp lực.', feature3:'Hai ngôn ngữ, thêm niềm vui', feature3text:'Khám phá bằng tiếng Việt và tiếng Anh.', stars:'Ngôi sao của bé', parentTitle:'Cùng bé khám phá toán học', parentText:'Mỗi bài có hai số ngẫu nhiên. Với phép cộng, mỗi nhóm có từ 1 đến 5 khối. Mời bé chạm từng khối và đếm thành tiếng, sau đó chọn đáp án. Bấm Bài mới để khám phá hai số khác, hoặc Làm lại để chơi lại bài hiện tại. Với phép nhân và chia, hãy cùng bé quan sát các nhóm bằng nhau.', parentNote:'Không giới hạn thời gian, không tài khoản và không thu thập thông tin của bé. Ngôi sao chỉ được lưu trong phiên chơi. Âm thanh vui nhộn bắt đầu khi bé chạm và có thể tắt bằng nút âm thanh. Giọng đọc tùy thuộc trình duyệt và giọng đã cài trên thiết bị.', close:'Đã hiểu', block:'khối', group:'Nhóm', choose:'Chọn đáp án', zero:'Không còn khối nào', count:'Đã chuyển', completed:'Đã hoàn thành', soundUnavailable:'Thiết bị chưa hỗ trợ giọng đọc. Bé vẫn có thể xem hướng dẫn trên màn hình.'},
@@ -11,41 +15,41 @@ Object.assign(copy.vi, {
  wrongTitle:'Chưa đúng rồi, bé ơi!', wrongNote:'Không sao cả! Mình cùng chơi lại và đếm thật kỹ nhé.', replay:'Chơi lại từ đầu', start:'Bắt đầu chơi', pickTitle:'Hôm nay bé muốn chơi gì?', pickSubtitle:'Chọn một phép tính để cùng các bạn khối số khám phá nhé!',
  back:'Quay lại', home:'Trang đầu', change:'Đổi phép tính', ready:'Bé sẵn sàng chưa?', waiting:'Bé có thể chọn đáp án ngay, hoặc chạm khối để đếm nhé!',
  chooseHint:'Chọn con số bé vừa đếm được', yourPuzzle:'BÀI TOÁN CỦA BÉ', wellDone:'Một ngôi sao cho bé!',
- nextPuzzle:'Chơi bài tiếp', explore:'Sân chơi của bé', soundTip:'Chạm để chơi · Bật tiếng để nghe niềm vui', music:'Nhạc nền', help:'Nghe bài toán', soundUnavailable:'Thiết bị chưa có giọng đọc phù hợp. Bé vẫn có thể xem bài toán và chơi với âm nhạc.',
+ nextPuzzle:'Chơi bài tiếp', explore:'Sân chơi của bé', soundTip:'Chạm để chơi · Bật tiếng để nghe niềm vui', music:'Nhạc nền', help:'Nghe bài toán', soundUnavailable:'Chưa phát được giọng đọc. Bé có thể bấm Nghe bài toán để thử lại và vẫn chơi bình thường.',
 });
 Object.assign(copy.en, {
  wrongTitle:'Not quite, little friend!', wrongNote:'That’s okay! Let’s start again and count together.', replay:'Start again', start:'Let’s play', pickTitle:'What shall we play today?', pickSubtitle:'Choose an operation and explore with your little block friends!',
  back:'Go back', home:'Home', change:'Change game', ready:'Ready to play?', waiting:'Choose an answer now, or tap the blocks to help you count!',
  chooseHint:'Choose the number you just counted', yourPuzzle:'YOUR LITTLE PUZZLE', wellDone:'A little star for you!',
- nextPuzzle:'Next puzzle', explore:'Your playground', soundTip:'Tap to play · Sound on for a little joy', music:'Music', help:'Hear the puzzle', soundUnavailable:'A matching voice is unavailable on this device. You can still read the puzzle and play with music.',
+ nextPuzzle:'Next puzzle', explore:'Your playground', soundTip:'Tap to play · Sound on for a little joy', music:'Music', help:'Hear the puzzle', soundUnavailable:'Speech could not play. Tap Hear the puzzle to retry; you can still keep playing.',
 });
 let screen='welcome', lang='vi', mode='add', moved=0, stars=0, sound=true, music=true, audioNotice=false, feedback='', won=false;
-const narrator=createNarrator({onSpeaking:value=>sounds.setDucked(value),onUnavailable:()=>{audioNotice=true;const notice=document.querySelector('.speech-notice');if(notice){notice.hidden=false;notice.textContent=t('soundUnavailable');}}});
+const narrator=createRecordedNarrator({getContext:()=>sounds.audioContext(),baseUrl:import.meta.env.BASE_URL,onSpeaking:value=>sounds.setDucked(value),onUnavailable:()=>{audioNotice=true;const notice=document.querySelector('.speech-notice');if(notice){notice.hidden=false;notice.textContent=t('soundUnavailable');}}});
 let used = new Set();
 const symbols={add:'+',subtract:'−',multiply:'×',divide:'÷'};
 let [a,b] = makeProblem(mode);
+let choices=answerChoices(result(mode,a,b));
 const t = key => copy[lang][key];
 function character(n, extra='') {
  const cols=n===4||n===6||n===8||n===10?2:n===9?3:1;
  return `<div class="character c${n} ${extra}" style="--cols:${cols};--rows:${Math.ceil(n/cols)}"><span class="character-number">${n}</span><div class="character-body">${Array.from({length:n},()=>'<i></i>').join('')}<div class="face"><div class="eyes">${n===1?'<b></b>':'<b></b><b></b>'}</div><div class="smile"></div></div>${n===3?'<div class="crown">♛</div>':''}</div><span class="leg left"></span><span class="leg right"></span><span class="arm left"></span><span class="arm right"></span></div>`;
 }
-function block(id, color, active=true) {return `<button class="unit ${color} ${used.has(id)?'used':''}" data-block="${id}" ${!active||used.has(id)?'disabled':''} aria-label="${t('block')} ${Number(id.split('-').pop())+1}"><span class="mini-eyes">••</span></button>`;}
+function block(id, color, active=true) {return `<button class="unit ${color} ${used.has(id)?'used':''}" data-block="${id}" ${!active||used.has(id)||moving||grouping?'disabled':''} aria-label="${t('block')} ${Number(id.split('-').pop())+1}"><span class="mini-eyes">••</span></button>`;}
 function units(n,color='coral') {return Array.from({length:n},(_,i)=>`<span class="unit result-unit ${color}" style="--delay:${i%5*35}ms"><span class="mini-eyes">••</span></span>`).join('');}
 function stage() {
  if(mode==='add') return `<div class="source-group coral-tray">${Array.from({length:a},(_,i)=>block('a-'+i,'coral')).join('')||'<span>0</span>'}</div><span class="stage-symbol">+</span><div class="source-group gold-tray">${Array.from({length:b},(_,i)=>block('b-'+i,'gold')).join('')||'<span>0</span>'}</div>`;
  if(mode==='subtract') return `<div class="source-group coral-tray wide">${Array.from({length:a},(_,i)=>block('a-'+i,'coral',moved<b)).join('')||'<span>0</span>'}</div>`;
- if(mode==='multiply') return Array.from({length:b},(_,i)=>`<button class="multiply-group ${used.has('g-'+i)?'used':''}" data-block="g-${i}" ${used.has('g-'+i)?'disabled':''} aria-label="${t('group')} ${i+1}">${units(a,i%2?'gold':'coral')}</button>`).join('');
+ if(mode==='multiply') return Array.from({length:b},(_,i)=>`<button class="multiply-group ${used.has('g-'+i)?'used':''}" data-block="g-${i}" ${used.has('g-'+i)||moving||grouping?'disabled':''} aria-label="${t('group')} ${i+1}">${units(a,i%2?'gold':'coral')}</button>`).join('');
  return `<div class="source-group coral-tray wide">${Array.from({length:a},(_,i)=>block('a-'+i,'coral')).join('')}</div>`;
 }
 function basket() {
  if(mode==='divide') return Array.from({length:b},(_,i)=>`<div class="share-group"><span>${t('group')} ${i+1}</span><div>${units(Math.floor(moved/b)+(i<moved%b?1:0),i%2?'gold':'coral')}</div></div>`).join('');
  const n=mode==='add'?moved:mode==='subtract'?a-moved:a*moved;
- return n?units(n):`<span class="empty-basket">${mode==='subtract'?t('zero'):t('empty')}</span>`;
+ return n?(mode==='add'?Array.from(used).map(id=>units(1,id.startsWith('b-')?'gold':'coral')).join(''):units(n)):`<span class="empty-basket">${mode==='subtract'?t('zero'):t('empty')}</span>`;
 }
 function options() {
  const answer=result(mode,a,b);
- const opts=[answer,answer===0?2:answer-1,answer+1].sort((x,y)=>x-y);
- return opts.map(n=>`<button class="answer-option ${won&&n===answer?'right-answer':''}" data-answer="${n}" ${won?'disabled':''} aria-label="${t('choose')}: ${n}">${n}${won&&n===answer?'<span aria-hidden="true">✓</span>':''}</button>`).join('');
+ return choices.map(n=>`<button class="answer-option ${won&&n===answer?'right-answer':''}" data-answer="${n}" ${won?'disabled':''} aria-label="${t('choose')}: ${n}">${n}${won&&n===answer?'<span aria-hidden="true">✓</span>':''}</button>`).join('');
 }
 function header() {
  return `<header class="topbar"><button class="brand" data-home aria-label="${t('home')}"><span class="brand-icon" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>number<span class="brand-light">blocks</span><small>${t('club')}</small></span></button><div class="header-actions"><button class="parents-link" data-parent aria-label="${t('parent')}"><span aria-hidden="true">♡</span><span class="parents-text">${t('parent')}</span></button><div class="language" aria-label="Language"><button data-lang="vi" class="${lang==='vi'?'selected':''}" aria-pressed="${lang==='vi'}">VI</button><button data-lang="en" class="${lang==='en'?'selected':''}" aria-pressed="${lang==='en'}">EN</button></div><button class="music-button ${music?'enabled':''}" data-music aria-label="${t('music')}: ${music?t('on'):t('off')}" aria-pressed="${music}" title="${t('music')}"><span aria-hidden="true">♫</span><small>${t('music')}</small>${music?'':'<span class="muted-slash" aria-hidden="true">╱</span>'}</button><button class="sound-button ${sound?'enabled':''}" data-sound aria-label="${t('sound')}: ${sound?t('on'):t('off')}" aria-pressed="${sound}"><span aria-hidden="true">${sound?'🔊':'🔇'}</span></button></div></header>`;
@@ -60,16 +64,10 @@ function game() {
  const done=moved>=progressTotal(mode,a,b);
  return `<main class="game-screen"><div class="screen-toolbar"><button class="back-button" data-choose>← ${t('change')}</button><h1 tabindex="-1"><span class="heading-symbol">${symbols[mode]}</span> ${t('title'+mode)}</h1><span class="star-badge" aria-label="${t('stars')}: ${stars}">★ <strong>${stars}</strong></span></div><div class="game-board">
  <aside class="answer-panel ${done?'answer-ready':''} ${won?'answer-won':''}" aria-labelledby="answer-heading"><div class="eyebrow">✦ ${t('yourPuzzle')}</div><div class="equation" aria-label="${a} ${symbols[mode]} ${b} = ${won?result(mode,a,b):'?'}"><span>${a}</span><i>${symbols[mode]}</i><span>${b}</span><i>=</i><strong>${won?result(mode,a,b):'?'}</strong></div><div class="answer-mascot" aria-hidden="true">${character(4)}<span>${won?'★':'?'}</span></div><h2 id="answer-heading">${t('answer')}</h2><p class="answer-hint">${t(done?'chooseHint':'waiting')}</p><div class="answer-options" role="group" aria-label="${t('choose')}">${options()}</div><div class="feedback ${won?'success':''}" role="status" aria-live="polite">${feedback?t(feedback):done?t('done'):''}</div><button class="next-button ${won?'celebrate':''}" data-new>${t(won?'nextPuzzle':'new')} <span aria-hidden="true">→</span></button></aside>
- <section class="play-area" aria-label="${t('explore')}"><div class="play-label"><span class="section-label">${t('play')}</span><button class="reset-button" data-reset>↺ ${t('reset')}</button></div><div class="play-instruction"><p class="tap-hint">${t(mode==='add'?'tap':mode==='subtract'?'tapSubtract':mode==='multiply'?'tapMultiply':'tapDivide')}</p><button class="listen-button" data-listen aria-label="${t('help')}" title="${t('help')}">♬</button></div><div class="source-stage">${stage()}</div><div class="direction-arrow" aria-hidden="true">↓</div><div class="basket ${mode==='divide'?'divided':''}"><div class="basket-label">${t('basket')}</div><div class="basket-content">${basket()}</div></div><div class="play-bottom"><span class="count-progress">${t('count')} <b>${moved}</b> / ${progressTotal(mode,a,b)}</span><button class="primary-button" data-all ${done?'disabled':''}>${done?'✓ '+t('completed'):t('action'+mode)+' <span aria-hidden="true">→</span>'}</button></div></section></div></main>`;
+ <section class="play-area" aria-label="${t('explore')}"><div class="play-label"><span class="section-label">${t('play')}</span><button class="reset-button" data-reset>↺ ${t('reset')}</button></div><div class="play-instruction"><p class="tap-hint">${t(mode==='add'?'tap':mode==='subtract'?'tapSubtract':mode==='multiply'?'tapMultiply':'tapDivide')}</p><button class="listen-button" data-listen aria-label="${t('help')}" title="${t('help')}">♬</button></div><div class="source-stage">${stage()}</div><div class="direction-arrow" aria-hidden="true">${counting===null?'↓':`<span class="count-bubble">${counting}</span>`}</div><div class="basket ${mode==='divide'?'divided':''}"><div class="basket-label">${t('basket')}</div><div class="basket-content">${basket()}</div></div><div class="play-bottom"><span class="count-progress">${t('count')} <b>${moved}</b> / ${progressTotal(mode,a,b)}</span><button class="primary-button" data-all ${done||moving||grouping?'disabled':''}>${done?'✓ '+t('completed'):t('action'+mode)+' <span aria-hidden="true">→</span>'}</button></div></section></div></main>`;
 }
 function retryScreen() {
  return `<main class="retry-screen"><section class="retry-card"><div class="retry-friend" aria-hidden="true">${character(1)}<span>♡</span></div><h1 tabindex="-1">${t('wrongTitle')}</h1><p>${t('wrongNote')}</p><div class="equation"><span>${a}</span><i>${symbols[mode]}</i><span>${b}</span><i>=</i><strong>?</strong></div><button class="start-button" data-replay>↺ ${t('replay')}</button><button class="back-button" data-choose>← ${t('change')}</button></section></main>`;
-}
-function completeBlocks() {
- if(mode==='add'){for(let i=0;i<a;i++)used.add('a-'+i);for(let i=0;i<b;i++)used.add('b-'+i);}
- else if(mode==='multiply'){for(let i=0;i<b;i++)used.add('g-'+i);}
- else{for(let i=0;i<a&&used.size<(mode==='subtract'?b:a);i++)used.add('a-'+i);}
- moved=progressTotal(mode,a,b);
 }
 function render(focusHeading=false) {
  const active=document.activeElement;
@@ -85,17 +83,18 @@ function render(focusHeading=false) {
   (target || (focused==='data-block'||focused==='data-all'?document.querySelector('[data-block]:not(:disabled), [data-answer]:not(:disabled)'):null))?.focus({preventScroll:true});
  }
 }
-function clear() { moved=0; used.clear(); feedback=''; won=false; narrator.cancel(); }
+function clear() { cancelActivity();moved=0; used.clear(); feedback=''; won=false; narrator.cancel(); }
 function navigate(next) {
+ cancelActivity();
  const hash=next==='play'||next==='retry'?`#${next}/${mode}`:`#${next}`;
  if(location.hash!==hash)history.pushState(null,'',hash);
  screen=next;render(true);window.scrollTo(0,0);
 }
 function readRoute() {
- narrator.cancel();
+ cancelActivity();
  const route=location.hash.slice(1).split('/');
  if((route[0]==='play'||route[0]==='retry')&&Object.hasOwn(symbols,route[1])){
-  if(mode!==route[1]){mode=route[1];[a,b]=makeProblem(mode);clear();}
+  if(mode!==route[1]){mode=route[1];[a,b]=makeProblem(mode);choices=answerChoices(result(mode,a,b));clear();}
   screen=route[0];
  } else screen=route[0]==='choose'?'choose':'welcome';
  render(true);
@@ -103,40 +102,75 @@ function readRoute() {
 function speak(text, explicit=false) {
  if((!sound&&!explicit)||document.hidden)return;
  audioNotice=false;const notice=document.querySelector('.speech-notice');if(notice)notice.hidden=true;
- narrator.speak(text,lang);
+ return narrator.speak(text,lang);
 }
-function readPuzzle(explicit=false){speak(questionText(lang,mode,a,b),explicit);}
+function readPuzzle(explicit=false){speak(questionText(lang,mode,a,b),explicit);if(sound||explicit)void narrator.prepareNumbers(lang);}
 function revealAnswers() {
  if(moved>=progressTotal(mode,a,b)&&window.matchMedia('(max-width: 700px)').matches)document.querySelector('.answer-panel')?.scrollIntoView({block:'start'});
 }
-function move(id) { if(used.has(id)||moved>=progressTotal(mode,a,b))return; used.add(id);moved++;feedback='';render();revealAnswers();sounds.play(moved===progressTotal(mode,a,b)?'merge':'tap'); }
+function cancelActivity(){activity++;motion.cancel();narrator.cancel();moving=false;grouping=false;counting=null;}
+function pendingIds(){
+ if(mode==='add')return [...Array.from({length:a},(_,i)=>'a-'+i),...Array.from({length:b},(_,i)=>'b-'+i)].filter(id=>!used.has(id));
+ if(mode==='multiply')return Array.from({length:b},(_,i)=>'g-'+i).filter(id=>!used.has(id));
+ return Array.from({length:a},(_,i)=>'a-'+i).filter(id=>!used.has(id)).slice(0,progressTotal(mode,a,b)-moved);
+}
+async function stepMove(id,token){
+ if(token!==activity||used.has(id)||moved>=progressTotal(mode,a,b))return false;
+ moving=true;render();
+ const source=document.querySelector(`[data-block="${id}"]`);
+ const destination=mode==='divide'?document.querySelectorAll('.share-group')[moved%b]:document.querySelector(mode==='subtract'?'.direction-arrow':'.basket-content');
+ await motion.fly(source,destination,{remove:mode==='subtract'});
+ if(token!==activity)return false;
+ used.add(id);moved++;moving=false;
+ counting=mode==='multiply'?a*moved:mode==='subtract'?a-moved:moved;
+ render();sounds.play('tap');
+ if(sound&&!document.hidden){
+  let timeout;
+  await Promise.race([speak(numberText(lang,counting)),new Promise(resolve=>{timeout=setTimeout(resolve,2400);})]);
+  clearTimeout(timeout);
+ }
+ return token===activity;
+}
+async function move(id){
+ if(moving||grouping||used.has(id))return;
+ cancelActivity();const token=activity;
+ if(await stepMove(id,token)){if(moved>=progressTotal(mode,a,b))sounds.play('merge');revealAnswers();}
+}
+async function runAll(){
+ if(moving||grouping)return false;
+ cancelActivity();const token=activity;grouping=true;render();
+ for(const id of pendingIds())if(!await stepMove(id,token))return false;
+ if(token!==activity)return false;
+ grouping=false;moving=false;render();revealAnswers();sounds.play('merge');return true;
+}
 function bind() {
  const on=(selector,handler)=>document.querySelectorAll(selector).forEach(el=>el.onclick=()=>handler(el));
  on('[data-home]',()=>{narrator.cancel();navigate('welcome');});
  on('[data-start], [data-choose]',()=>{narrator.cancel();navigate('choose');sounds.play('next');});
- on('[data-mode]',el=>{const previous=mode===el.dataset.mode?[a,b]:[];mode=el.dataset.mode;[a,b]=makeProblem(mode,Math.random,previous);clear();navigate('play');sounds.play('next');readPuzzle();});
- on('[data-lang]',el=>{lang=el.dataset.lang;narrator.cancel();audioNotice=false;render();if(screen==='play')readPuzzle();else if(screen==='retry')speak(t('wrongNote'));});
+ on('[data-mode]',el=>{const previous=mode===el.dataset.mode?[a,b]:[];mode=el.dataset.mode;[a,b]=makeProblem(mode,Math.random,previous);choices=answerChoices(result(mode,a,b));clear();navigate('play');sounds.play('next');readPuzzle();});
+ on('[data-lang]',el=>{cancelActivity();lang=el.dataset.lang;audioNotice=false;render();if(screen==='play')readPuzzle();else if(screen==='retry')speak(t('wrongNote'));});
  on('[data-block]',el=>move(el.dataset.block));
- on('[data-all]',()=>{completeBlocks();render();revealAnswers();sounds.play('merge');});
+ on('[data-all]',()=>{void runAll();});
  on('[data-reset]',()=>{clear();render();sounds.play('reset');readPuzzle();});
  on('[data-music]',()=>{music=!music;sounds.setMusicEnabled(music);render();});
- on('[data-sound]',()=>{sound=!sound;sounds.setEnabled(sound);if(sound)sounds.play('toggle');else narrator.cancel();render();if(sound&&screen==='play')readPuzzle();});
- on('[data-listen]',()=>readPuzzle(true));
- on('[data-answer]',el=>{
+ on('[data-sound]',()=>{cancelActivity();sound=!sound;sounds.setEnabled(sound);if(sound)sounds.play('toggle');else narrator.cancel();render();if(sound&&screen==='play')readPuzzle();});
+ on('[data-listen]',()=>{cancelActivity();render();readPuzzle(true);});
+ on('[data-answer]',async el=>{
   if(won)return;
   if(Number(el.dataset.answer)===result(mode,a,b)){
-   completeBlocks();won=true;stars++;feedback='correct';render();sounds.play('correct');speak(t('correct'));
+   cancelActivity();won=true;stars++;feedback='correct';render();
+   if(await runAll()){sounds.play('correct');speak(t('correct'));}
   }else{
    clear();navigate('retry');sounds.play('retry');speak(t('wrongNote'));
   }
  });
  on('[data-replay]',()=>{clear();navigate('play');sounds.play('reset');readPuzzle();});
- on('[data-new]',()=>{[a,b]=makeProblem(mode,Math.random,[a,b]);clear();render();sounds.play('next');readPuzzle();});
- const dialog=document.querySelector('dialog');on('[data-parent]',()=>dialog.showModal());on('[data-close]',()=>dialog.close());dialog.onclick=e=>{if(e.target===dialog)dialog.close();};
+ on('[data-new]',()=>{[a,b]=makeProblem(mode,Math.random,[a,b]);choices=answerChoices(result(mode,a,b));clear();render();sounds.play('next');readPuzzle();});
+ const dialog=document.querySelector('dialog');on('[data-parent]',()=>{cancelActivity();render();document.querySelector('dialog').showModal();});on('[data-close]',()=>dialog.close());dialog.onclick=e=>{if(e.target===dialog)dialog.close();};
 }
 document.addEventListener('click',()=>{void sounds.start();},{capture:true});
-document.addEventListener('visibilitychange',()=>{sounds.setPaused(document.hidden);if(document.hidden)narrator.cancel();});
-window.addEventListener('pagehide',()=>{sounds.setPaused(true);narrator.cancel();});
+document.addEventListener('visibilitychange',()=>{sounds.setPaused(document.hidden);if(document.hidden){cancelActivity();render();}});
+window.addEventListener('pagehide',()=>{sounds.setPaused(true);cancelActivity();});
 window.addEventListener('pageshow',()=>sounds.setPaused(document.hidden));
 window.addEventListener('popstate',()=>{readRoute();if(screen==='play')readPuzzle();});
 readRoute();

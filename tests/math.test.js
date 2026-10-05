@@ -26,3 +26,13 @@ test('new puzzles exclude the current operands even with repeated random input',
     }
   }
 });
+test('answers are shuffled into all positions without duplicates or changing correctness', async()=>{
+ const {answerChoices}=await import('../src/math.js');
+ const positions=new Set();
+ for(const random of [()=>0,()=>.4,()=>.99]){
+  const choices=answerChoices(5,random);positions.add(choices.indexOf(5));
+  assert.deepEqual([...choices].sort((a,b)=>a-b),[4,5,6]);
+ }
+ assert.equal(positions.size,3);
+ assert.deepEqual(answerChoices(0,()=>.5).sort((a,b)=>a-b),[0,1,2]);
+});

@@ -1,0 +1,1 @@
+Original math prompts synthesized with eSpeak NG 1.52.0 (vi and en-us), encoded using FFmpeg. These are synthesized voices, not human recordings. Texts and regeneration script: src/voice-catalog.js and scripts/generate-voices.mjs. Speech engine project: https://github.com/espeak-ng/espeak-ng. No eSpeak NG binary, voice data or FFmpeg binary is distributed with this website.

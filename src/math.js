@@ -19,7 +19,7 @@ export function nextValue(mode, a, b, operand, direction) {
   return operand === 'a' ? a : b;
 }
 export function progressTotal(mode, a, b) { return mode === 'add' || mode === 'divide' ? (mode === 'add' ? a + b : a) : b; }
-export function makeProblem(mode, random = Math.random, previous = []) {
+export function problemPool(mode, previous = []) {
   const pool = [];
   const maxA = mode === 'divide' ? 16 : mode === 'subtract' ? 10 : 5;
   const maxB = mode === 'subtract' ? 10 : mode === 'add' ? 5 : 4;
@@ -29,5 +29,18 @@ export function makeProblem(mode, random = Math.random, previous = []) {
           (a !== previous[0] || b !== previous[1])) pool.push([a, b]);
     }
   }
-  return pool[Math.floor(random() * pool.length)];
+  return pool;
+}
+
+export function makeProblem(mode, random = Math.random, previous = []) {
+  const pool=problemPool(mode,previous);
+  return pool[Math.floor(random()*pool.length)];
+}
+export function answerChoices(answer, random = Math.random) {
+  const choices=[answer,answer===0?2:answer-1,answer+1];
+  for(let i=choices.length-1;i>0;i--){
+    const j=Math.floor(random()*(i+1));
+    [choices[i],choices[j]]=[choices[j],choices[i]];
+  }
+  return choices;
 }
