@@ -1,8 +1,7 @@
 import './style.css';
 import { result, progressTotal, makeProblem, answerChoices } from './math.js';
 import { createSoundPlayer } from './audio.js';
-import { questionText, numberText } from './narration.js';
-import { createRecordedNarrator } from './recorded-narration.js';
+import { createNarrator, questionText, numberText } from './narration.js';
 import { createBlockMotion } from './motion.js';
 const motion=createBlockMotion();
 let activity=0, moving=false, grouping=false, counting=null;
@@ -24,7 +23,7 @@ Object.assign(copy.en, {
  nextPuzzle:'Next puzzle', explore:'Your playground', soundTip:'Tap to play · Sound on for a little joy', music:'Music', help:'Hear the puzzle', soundUnavailable:'Speech could not play. Tap Hear the puzzle to retry; you can still keep playing.',
 });
 let screen='welcome', lang='vi', mode='add', moved=0, stars=0, sound=true, music=true, audioNotice=false, feedback='', won=false;
-const narrator=createRecordedNarrator({getContext:()=>sounds.audioContext(),baseUrl:import.meta.env.BASE_URL,onSpeaking:value=>sounds.setDucked(value),onUnavailable:()=>{audioNotice=true;const notice=document.querySelector('.speech-notice');if(notice){notice.hidden=false;notice.textContent=t('soundUnavailable');}}});
+const narrator=createNarrator({onSpeaking:value=>sounds.setDucked(value),onUnavailable:()=>{audioNotice=true;const notice=document.querySelector('.speech-notice');if(notice){notice.hidden=false;notice.textContent=t('soundUnavailable');}}});
 let used = new Set();
 const symbols={add:'+',subtract:'−',multiply:'×',divide:'÷'};
 let [a,b] = makeProblem(mode);
@@ -104,7 +103,7 @@ function speak(text, explicit=false) {
  audioNotice=false;const notice=document.querySelector('.speech-notice');if(notice)notice.hidden=true;
  return narrator.speak(text,lang);
 }
-function readPuzzle(explicit=false){speak(questionText(lang,mode,a,b),explicit);if(sound||explicit)void narrator.prepareNumbers(lang);}
+function readPuzzle(explicit=false){speak(questionText(lang,mode,a,b),explicit);}
 function revealAnswers() {
  if(moved>=progressTotal(mode,a,b)&&window.matchMedia('(max-width: 700px)').matches)document.querySelector('.answer-panel')?.scrollIntoView({block:'start'});
 }

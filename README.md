@@ -28,8 +28,8 @@ VI / EN switches the entire game language. Audio starts only after interaction; 
 - Original, gentle background music loops locally through the Web Audio API. **Music / Nhạc nền** toggles only music; the speaker button mutes music, effects and automatic narration together. The music preference is retained when toggling the master speaker within a session.
 - Distinct short melodies accompany taps, merging, correct answers, retry screens and new puzzles. Correct and wrong answers also receive spoken encouragement when speech is available.
 - Entering a game, starting a new puzzle, replaying or resetting reads the actual random operands and operation: “Một cộng một bằng mấy?” / “What is one plus one?”. Switching VI / EN in a game rereads the current puzzle in that language. **Hear the puzzle / Nghe bài toán** explicitly repeats it, even if automatic sound is muted.
-- Narration first uses 276 bundled MP3 clips (about 2.9 MB total) covering all generated questions, numbers 0–20 and feedback in Vietnamese and English. These are synthesized eSpeak NG voices, not human recordings. Full question clips avoid joining words together. Clips play through the already unlocked Web Audio context, so an installed browser voice is not required. Numbers are prefetched for the current language; decoded clips use a bounded 48-item memory cache. If a clip cannot load or play, browser speech is used as a fallback when available. If both fail, a nonblocking notice appears. Old narration is cancelled on navigation or a new prompt. Music lowers during speech and returns afterward. No speech API or runtime credentials are needed.
-- All audio pauses when the tab is hidden. Music resumes when returning to an already activated session; interrupted speech is not replayed automatically. Speech files are served from this site; music is synthesized locally with no external music requests. This does not provide full offline installation. The optional Google Font falls back to the system sans-serif font.
+- Narration uses the browser's Vietnamese or English voice, as in the version before bundled synthesized clips were introduced. Questions, number counting and feedback all use the same language-matched voice. Voice quality and availability depend on the device/browser. No MP3 speech files are downloaded. If no matching voice is available, a nonblocking notice appears and gameplay continues. Old speech is cancelled on navigation or a new prompt; music lowers during speech and returns afterward. No speech API or runtime credentials are needed.
+- All audio pauses when the tab is hidden. Music resumes when returning to an already activated session; interrupted speech is not replayed automatically. Music is synthesized locally with no external music requests; speech uses the browser voice service. This does not provide full offline installation. The optional Google Font falls back to the system sans-serif font.
 
 No account, analytics, advertising or backend. Use the existing checkout in each isolated cloud task; no additional worktree is needed. Development servers must be started again in a new task.
 
@@ -38,13 +38,3 @@ No account, analytics, advertising or backend. Use the existing checkout in each
 The GitHub Actions workflow `.github/workflows/pages.yml` tests, builds, and deploys pushes to `main`. Vite uses `/numberblocks/` as the base path, so the game is served at `https://huykien94.github.io/numberblocks/` after a successful deployment.
 
 Before the first deployment, a repository administrator must open **Settings → Pages → Build and deployment → Source**, select **GitHub Actions**, and run the deployment workflow. The workflow deliberately does not try to create a Pages site: the default GitHub Actions token cannot enable Pages for the first time. For local development, open the `/numberblocks/` path printed by Vite.
-
-## Regenerate speech assets (optional)
-
-The checked-in files in `public/audio` are ready to deploy; installing speech tools is not needed for normal development or CI. Maintainers can install eSpeak NG 1.52 and FFmpeg with MP3 encoding, then run:
-
-```sh
-node scripts/generate-voices.mjs
-```
-
-`src/voice-catalog.js` derives the required prompts from the same problem pool as the game. The generator writes complete sentences and normalized mono MP3s. `NUMBERBLOCKS_ESPEAK` and `NUMBERBLOCKS_ESPEAK_DATA` optionally specify a custom executable and data root. Neither tool binary is shipped to browsers. Run `npm test` afterward to check that the catalog is fully covered.
