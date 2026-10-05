@@ -23,7 +23,13 @@ The welcome screen introduces the game. Tap **Let’s play / Bắt đầu chơi*
 
 Subtraction never yields negative answers. Division only offers exact, positive whole-number problems. Addition chooses two numbers from 1 to 5 (sums up to 10); multiplication supports up to 5 blocks × 4 groups.
 
-VI / EN switches the entire game language. Playful interaction sounds use the Web Audio API, enabled by default and initialized only after a click or tap. The sound button mutes effects immediately. Short melodies accompany taps, merging, answers and new puzzles; no audio assets or network requests are needed. Listen to instructions explicitly plays browser speech synthesis with installed Vietnamese or English voices, even when automatic effects are muted. The game remains usable without speech or a network connection after assets load. The optional Google Font falls back to the system sans-serif font.
+VI / EN switches the entire game language. Audio starts only after interaction; no music plays on initial page load.
+
+- Original, gentle background music loops locally through the Web Audio API. **Music / Nhạc nền** toggles only music; the speaker button mutes music, effects and automatic narration together. The music preference is retained when toggling the master speaker within a session.
+- Distinct short melodies accompany taps, merging, correct answers, retry screens and new puzzles. Correct and wrong answers also receive spoken encouragement when speech is available.
+- Entering a game, starting a new puzzle, replaying or resetting reads the actual random operands and operation: “Một cộng một bằng mấy?” / “What is one plus one?”. Switching VI / EN in a game rereads the current puzzle in that language. **Hear the puzzle / Nghe bài toán** explicitly repeats it, even if automatic sound is muted.
+- Narration uses browser speech synthesis with matching installed Vietnamese or English voices. Voice availability and pronunciation depend on the browser/device. Missing voices or speech errors display a nonblocking notice; the game remains playable. No speech API key is required. Old narration is cancelled on navigation or a new prompt. Music lowers during speech and returns afterward.
+- All audio pauses when the tab is hidden. Music resumes when returning to an already activated session; interrupted speech is not replayed automatically. No audio assets or external music requests are needed. The optional Google Font falls back to the system sans-serif font.
 
 No account, analytics, advertising or backend. Use the existing checkout in each isolated cloud task; no additional worktree is needed. Development servers must be started again in a new task.
 

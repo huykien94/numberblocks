@@ -22,3 +22,8 @@
 .retry-card .start-button{margin:22px auto;min-height:76px;font-size:23px}
 .retry-card .back-button{background:transparent;border-color:transparent;color:#889677}
 @media(max-width:700px){.retry-screen{min-height:calc(100svh - 78px);padding:24px 15px}.retry-card{padding:27px 18px 20px}.retry-card>p{font-size:15px}.retry-card .start-button{font-size:19px;min-height:68px;padding:14px 21px}}
+.music-button{position:relative;min-width:64px;height:52px;padding:3px 9px;border:1px solid #dce4d5;border-radius:15px;background:#fafaf5;color:#8c987e;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0}
+.music-button.enabled{background:#fff6db;color:#b39144;border-color:#ecdfb6}.music-button>span:first-child{font-size:22px;line-height:1.2}.music-button small{font-size:9px;font-weight:600;white-space:nowrap}.music-button .muted-slash{top:0;left:26px;font-size:25px}
+.speech-notice{margin:10px auto 0;padding:8px 20px;max-width:850px;text-align:center;color:#7f8b72;font-size:12px;line-height:1.6}.speech-notice[hidden]{display:none}.sound-button{font-size:21px}
+@media(max-width:700px){.parents-text{display:none}.header-actions{gap:5px}.music-button{height:48px;min-width:56px;padding:3px 6px}.brand{font-size:19px}.brand-icon{display:none}.brand small{font-size:5px;letter-spacing:1px}}
+@media(max-width:480px){.brand>span:last-child{display:none}.brand-icon{display:grid}.header-actions{gap:6px}.topbar{padding:0 14px}.music-button{min-width:62px}.speech-notice{font-size:11px;margin:8px 12px 0;padding:8px}}
