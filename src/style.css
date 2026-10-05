@@ -30,3 +30,5 @@
 .flying-block{z-index:1000;box-shadow:0 9px 18px #65563828;will-change:transform;pointer-events:none!important;animation:none!important}
 .count-bubble{display:inline-grid;place-items:center;min-width:44px;height:40px;padding:0 12px;border-radius:14px;background:#fff1ce;color:#9c7938;font-size:25px;font-weight:800;line-height:1;animation:pop .2s ease-out}
 .result-unit{animation:none}
+.speech-help-button{border:0;background:transparent;text-decoration:underline;color:#567d47;font-size:inherit;font-weight:600;min-height:44px;padding:8px 12px}
+.voice-help{padding:14px 18px;background:#f2f5ea;border-radius:16px;margin:20px 0}.voice-help h3{font-size:17px;margin:0}.voice-help p{font-size:13px}.voice-test-status:empty{display:none}

@@ -8,29 +8,56 @@ export function questionText(lang,mode,a,b) {
   const expression=`${words[lang][a] ?? a} ${operators[lang][mode]} ${words[lang][b] ?? b}`;
   return lang==='vi'?`${expression[0].toUpperCase()+expression.slice(1)} bằng mấy?`:`What is ${expression}?`;
 }
-export function createNarrator({synthesis=globalThis.speechSynthesis, Utterance=globalThis.SpeechSynthesisUtterance, onSpeaking=()=>{}, onUnavailable=()=>{}}={}) {
-  let generation=0, finish;
-  function cancel(){generation++;if(finish||synthesis?.speaking||synthesis?.pending)synthesis?.cancel();finish?.(false);finish=undefined;onSpeaking(false);}
-  function warmup(){try{synthesis?.getVoices();}catch{}}
-  warmup();
-  function speak(text,lang){
-    cancel();const current=generation;
-    const completion=new Promise(resolve=>{finish=resolve;});
-    if(!synthesis||!Utterance){onUnavailable();finish(false);return completion;}
-    try{
-      const voices=synthesis.getVoices();
-      const voice=voices.find(v=>v.lang.toLowerCase().replace('_','-')===(lang==='vi'?'vi-vn':'en-us')) || voices.find(v=>v.lang.toLowerCase().startsWith(lang));
-      // Never knowingly read Vietnamese in a different language's voice.
-      if(voices.length&&!voice){onUnavailable();finish(false);return completion;}
-      const utterance=new Utterance(text);
-      utterance.lang=lang==='vi'?'vi-VN':'en-US';if(voice)utterance.voice=voice;
-      utterance.rate=lang==='vi'?.85:.8;utterance.pitch=1.08;utterance.volume=1;
-      utterance.onstart=()=>{if(current===generation)onSpeaking(true);};
-      utterance.onend=()=>{if(current===generation){onSpeaking(false);const resolve=finish;finish=undefined;resolve?.(true);}};
-      utterance.onerror=event=>{if(current!==generation)return;onSpeaking(false);finish?.(false);if(!['canceled','interrupted'].includes(event.error))onUnavailable();};
-      synthesis.speak(utterance);
-    }catch{onSpeaking(false);onUnavailable();finish?.(false);}
-    return completion;
+export function createNarrator({synthesis=globalThis.speechSynthesis, Utterance=globalThis.SpeechSynthesisUtterance, onSpeaking=()=>{}, onUnavailable=()=>{}, timers=globalThis}={}) {
+ let generation=0, finish, watchdog, voiceListener;
+ function cleanup(){timers.clearTimeout(watchdog);watchdog=undefined;if(voiceListener)synthesis?.removeEventListener?.('voiceschanged',voiceListener);voiceListener=undefined;}
+ function cancel(){generation++;cleanup();if(finish||synthesis?.speaking||synthesis?.pending)synthesis?.cancel();finish?.(false);finish=undefined;onSpeaking(false);}
+ function warmup(){try{synthesis?.getVoices();}catch{}}
+ function voiceFor(lang){
+  const voices=synthesis.getVoices();const normalize=tag=>String(tag).toLowerCase().replaceAll('_','-');
+  return voices.find(v=>normalize(v.lang)===(lang==='vi'?'vi-vn':'en-us')) || voices.find(v=>normalize(v.lang).split('-')[0]===lang);
+ }
+ function timer(callback,delay){watchdog=timers.setTimeout(callback,delay);watchdog?.unref?.();}
+ warmup();
+ function speak(text,lang){
+  cancel();const current=generation;const completion=new Promise(resolve=>{finish=resolve;});
+  function settle(ok,reason){if(current!==generation)return;cleanup();onSpeaking(false);const resolve=finish;finish=undefined;resolve?.(ok);if(reason)onUnavailable(reason);}
+  if(!synthesis||!Utterance){settle(false,'unsupported');return completion;}
+  let attempt=0,started=false;
+  function launch(voice){
+   if(current!==generation)return;
+   const thisAttempt=++attempt;started=false;timers.clearTimeout(watchdog);
+   const utterance=new Utterance(text);
+   utterance.lang=lang==='vi'?'vi-VN':'en-US';if(voice)utterance.voice=voice;
+   utterance.rate=lang==='vi'?.85:.8;utterance.pitch=1;utterance.volume=1;
+   const active=()=>current===generation&&thisAttempt===attempt&&Boolean(finish);
+   function retryOrFail(reason){
+    if(!active())return;
+    if(attempt<2 && !['not-allowed','language-unavailable'].includes(reason)){
+     attempt++;synthesis.cancel();launch();
+    }else{attempt++;synthesis.cancel();settle(false,reason);}
+   }
+   utterance.onstart=()=>{
+    if(!active())return;started=true;timers.clearTimeout(watchdog);onSpeaking(true);
+    timer(()=>retryOrFail('speech-timeout'),15000);
+   };
+   utterance.onend=()=>{if(active())settle(true);};
+   utterance.onerror=event=>{if(!active())return;if(['canceled','interrupted'].includes(event.error))settle(false);else retryOrFail(event.error||'speech-error');};
+   // Some Android engines expose an incomplete voice list. Submit the language
+   // immediately and allow the native engine to select its installed voice.
+   if(synthesis.paused)synthesis.resume?.();
+   timer(()=>retryOrFail('start-timeout'),1800);
+   synthesis.speak(utterance);
   }
-  return {speak,cancel,warmup};
+  try{
+   const voice=voiceFor(lang);
+   if(!voice){voiceListener=()=>{
+    if(current!==generation||!finish||started||attempt!==1)return;
+    const loaded=voiceFor(lang);if(loaded){attempt++;synthesis.cancel();launch(loaded);}
+   };synthesis.addEventListener?.('voiceschanged',voiceListener);}
+   launch(voice);
+  }catch{settle(false,'speech-error');}
+  return completion;
+ }
+ return {speak,cancel,warmup};
 }
