@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "Numberblocks · Little Math Club",
-  "short_name": "Numberblocks",
+  "name": "Vườn Số · Number Garden",
+  "short_name": "Vườn Số",
   "description": "Chạm, đếm và khám phá toán học bằng tiếng Việt và tiếng Anh.",
   "lang": "vi",
   "start_url": "./",
@@ -10,7 +10,7 @@
   "background_color": "#fbf9f2",
   "theme_color": "#fbf9f2",
   "icons": [
-    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
-    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"}
+    {"src": "icons/garden-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icons/garden-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"}
   ]
 }

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vườn Số · Phiếu chơi cùng gia đình</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#f4f5ef;color:#233d33;font:17px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}a{color:inherit}button,select{font:inherit;min-height:48px;border:1px solid #768c79;border-radius:10px;background:white;color:inherit;padding:8px 16px;cursor:pointer}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #335cbd;outline-offset:4px}.toolbar{max-width:880px;margin:auto;padding:20px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}.toolbar a{padding:10px 0}.languages{display:flex;gap:6px;margin-left:auto}button[aria-pressed=true]{background:#233d33;color:white}.print-button{background:#233d33;color:white}.print-choice{max-width:840px;margin:0 auto 20px;padding:0 20px}.print-choice label{display:inline-flex;gap:12px;align-items:center;min-height:48px;cursor:pointer}.print-choice input{width:24px;height:24px;accent-color:#233d33}.sheet{max-width:840px;margin:0 auto 24px;padding:36px 44px;background:white;border:1px solid #d2d8cd;border-radius:12px}.brand{display:flex;align-items:center;gap:10px;font-weight:750;font-size:16px}.brand svg{width:30px;height:30px}.page-number{margin-left:auto;font-weight:400}.eyebrow{margin:24px 0 4px;font-weight:650;font-size:15px}h1{font-size:32px;line-height:1.2;margin:0 0 18px}h2{font-size:20px;margin:0 0 10px}p{margin:10px 0}.instruction{font-size:19px}.parent-tip{border-left:3px solid currentColor;padding:8px 14px;margin:20px 0;font-size:15px}.exercise{margin:22px 0}.equation{font-size:32px;font-weight:650;display:flex;align-items:center;gap:12px;margin:12px 0}.blank{display:inline-block;width:60px;height:54px;border:2px dashed currentColor;border-radius:8px;vertical-align:middle}.ten-frame{display:grid;grid-template-columns:repeat(5,1fr);border-top:2px solid currentColor;border-left:2px solid currentColor;max-width:500px}.cell{height:66px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;display:grid;place-items:center}.seed{width:38px;height:38px;display:inline-block;vertical-align:middle}.drawing{border:2px dashed currentColor;border-radius:12px;min-height:110px;padding:12px;color:#42534b}.objects{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:16px 0}.share-zones{display:flex;gap:14px}.share-zone{flex:1;min-width:0;border:2px solid currentColor;border-radius:45%;height:120px;display:flex;justify-content:center;align-items:flex-start;padding:8px;font-size:14px}.answers{margin-top:18px;padding:12px 16px;border:1px solid currentColor;font-size:15px}.answers h2{font-size:16px;margin-bottom:4px}.answers p{margin:3px 0}.note{font-size:14px}.footer{border-top:1px solid #9aaa9d;padding-top:10px;margin-top:24px;font-size:13px;color:#42534b}.share-exercise{margin:18px 0}.share-exercise .equation{font-size:26px}.share-exercise .blank{height:40px;width:48px}.share-exercise .seed{width:28px;height:28px}.share-exercise .objects{gap:8px;margin:8px 0}
+    @media(max-width:600px){.toolbar{padding:14px;gap:10px}.languages{margin-left:0}.sheet{margin:0 10px 20px;padding:24px 20px}h1{font-size:28px}.cell{height:52px}.seed{width:30px;height:30px}.equation{font-size:28px;gap:8px}.share-zones{gap:8px}.share-zone{height:105px}.print-choice{margin-bottom:12px}}
+    @page{size:A4;margin:12mm}
+    @media print{html,body{background:white;color:black;font-size:11pt}.toolbar,.print-choice{display:none!important}.sheet{width:100%;max-width:none;min-height:0;margin:0;padding:0;border:0;border-radius:0;break-after:page;page-break-after:always}.sheet:last-child{break-after:auto;page-break-after:auto}h1{font-size:24pt}.eyebrow{margin-top:16px}.instruction{font-size:13pt}.exercise{margin:16px 0}.parent-tip{margin:12px 0;font-size:10pt}.cell{height:17mm}.share-zone{height:29mm}.drawing{min-height:28mm}.footer,.note{color:black;font-size:9pt}.footer{margin-top:16px}.answers{break-inside:avoid;font-size:10pt}.answers h2{font-size:11pt}body:not(.print-answers) .answers{display:none}.seed{fill:none}.objects,.ten-frame,.share-zones{break-inside:avoid}}
+  </style>
+</head>
+<body>
+  <nav class="toolbar" aria-label="Tùy chọn phiếu chơi">
+    <a href="./#family" id="back">← Về góc gia đình</a>
+    <div class="languages" aria-label="Language / Ngôn ngữ">
+      <button type="button" data-lang="vi" aria-pressed="true" lang="vi">Tiếng Việt</button>
+      <button type="button" data-lang="en" aria-pressed="false" lang="en">English</button>
+    </div>
+    <button type="button" id="print" class="print-button">In 3 phiếu / Lưu PDF</button>
+  </nav>
+  <div class="print-choice"><label><input type="checkbox" id="include-answers"><span id="answer-label">In kèm đáp án dành cho ba mẹ</span></label><p class="note" id="print-note">Khổ A4, in đen trắng. Mỗi hoạt động một trang. Đáp án được ẩn khi in nếu chưa chọn ô trên.</p></div>
+  <main id="sheets"></main>
+  <noscript><p>Vui lòng bật JavaScript để xem phiếu chơi. / Please enable JavaScript to view the activity sheets.</p></noscript>
+  <script>
+    const seed = '<svg class="seed" viewBox="0 0 40 40" aria-hidden="true"><path d="M10 31C1 15 18 3 32 8C35 22 25 36 10 31Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M11 30L27 12" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+    const blank = '<span class="blank" aria-hidden="true"></span>';
+    const words = {
+      vi: {title:'Vườn Số · Phiếu chơi cùng gia đình',brand:'Vườn Số',back:'← Về góc gia đình',nav:'Tùy chọn phiếu chơi',print:'In 3 phiếu / Lưu PDF',answers:'In kèm đáp án dành cho ba mẹ',printNote:'Khổ A4, in đen trắng. Mỗi hoạt động một trang. Đáp án được ẩn khi in nếu chưa chọn ô trên.',activity:'CHƠI CÙNG NHAU',parent:'Gợi ý cho ba mẹ',key:'Đáp án dành cho ba mẹ',footer:'Chơi theo nhịp của bé. Có thể dừng bất cứ lúc nào. Không cần ghi tên hoặc chấm điểm.',
+      oneTitle:'Gieo đủ 10 hạt',oneIntro:'Đếm các hạt đã có. Vẽ thêm một hạt vào mỗi ô trống để đủ 10.',oneTip:'Dùng 10 đồ vật đủ lớn, phù hợp với bé. Đặt đồ vật vào từng ô rồi hỏi: “Cần thêm mấy để đủ 10?” Cho bé chạm và đếm lại.',oneA:'Đã có 6 hạt. Bé thêm mấy hạt?',oneB:'Đã có 3 hạt. Bé thêm mấy hạt?',oneKey:'6 + 4 = 10; 3 + 7 = 10.',
+      twoTitle:'Những hạt được lấy đi',twoIntro:'Có 8 hạt. Lấy đi một số hạt để còn 5. Bé gạch một nét lên mỗi hạt được lấy đi.',twoTip:'Đặt 8 đồ vật trên bàn. Bé chuyển từng đồ vật sang một bên, rồi đếm phần còn lại. Hỏi: “Con đã lấy đi mấy?” Có thể đặt lại và thử tiếp.',twoDrawing:'Vẽ hoặc đặt các hạt được lấy đi vào đây.',twoFollow:'Thử tiếp: có 7 hạt, lấy đi mấy để còn 3?',twoKey:'8 − 3 = 5; 7 − 4 = 3.',
+      threeTitle:'Chia hạt cho các bạn',threeIntro:'Chia lần lượt: mỗi bạn một hạt, rồi quay lại bạn đầu tiên. Các bạn có bằng nhau không?',threeTip:'Dùng các đĩa nhỏ và đồ vật đủ lớn. Bé tự chia từng lượt, rồi đếm trong mỗi đĩa. Chỉ hỏi số hạt của một bạn sau khi chia xong.',threeA:'8 hạt, chia đều cho 2 bạn.',threeB:'9 hạt, chia đều cho 3 bạn.',friend:'Bạn',each:'Mỗi bạn có',seeds:'hạt.',threeKey:'8 ÷ 2 = 4 hạt mỗi bạn; 9 ÷ 3 = 3 hạt mỗi bạn.',frameLabel:'Khay 10 ô, có {n} hạt',objectLabel:'{n} hạt để đếm'},
+      en: {title:'Number Garden · Family activity sheets',brand:'Number Garden',back:'← Back to the family corner',nav:'Activity sheet options',print:'Print 3 sheets / Save PDF',answers:'Include the answer keys for grown-ups',printNote:'A4 paper, black-and-white friendly. One activity per page. Answer keys stay hidden in print unless the box above is checked.',activity:'PLAY TOGETHER',parent:'A tip for grown-ups',key:'Answer key for grown-ups',footer:'Follow your child’s pace. Stop whenever you like. No name or score needed.',
+      oneTitle:'Plant 10 seeds',oneIntro:'Count the seeds already there. Draw one seed in each empty space to make 10.',oneTip:'Use 10 objects that are large enough and suitable for your child. Put one in each space and ask: “How many more make 10?” Let your child touch and count again.',oneA:'There are 6 seeds. How many more?',oneB:'There are 3 seeds. How many more?',oneKey:'6 + 4 = 10; 3 + 7 = 10.',
+      twoTitle:'The seeds taken away',twoIntro:'There are 8 seeds. Take some away to leave 5. Cross out each seed you take away.',twoTip:'Put 8 objects on the table. Let your child move objects to one side and count what is left. Ask: “How many did you take away?” Put them back and try again if needed.',twoDrawing:'Draw or place the seeds taken away here.',twoFollow:'Try another: there are 7 seeds. How many do you take away to leave 3?',twoKey:'8 − 3 = 5; 7 − 4 = 3.',
+      threeTitle:'Share seeds with friends',threeIntro:'Give one seed to each friend, then start again with the first friend. Do they all have the same amount?',threeTip:'Use small plates and objects that are large enough for your child. Let your child share in turns, then count on each plate. Ask how many one friend has after sharing.',threeA:'Share 8 seeds equally between 2 friends.',threeB:'Share 9 seeds equally between 3 friends.',friend:'Friend',each:'Each friend has',seeds:'seeds.',threeKey:'8 ÷ 2 = 4 seeds each; 9 ÷ 3 = 3 seeds each.',frameLabel:'Ten-frame with {n} seeds',objectLabel:'{n} seeds to count'}
+    };
+    let language = new URLSearchParams(location.search).get('lang') === 'en' ? 'en' : 'vi';
+    const objects = (n, w) => `<div class="objects" role="img" aria-label="${w.objectLabel.replace('{n}', n)}">${seed.repeat(n)}</div>`;
+    const frame = (n, w) => `<div class="ten-frame" role="img" aria-label="${w.frameLabel.replace('{n}', n)}">${Array.from({length:10},(_,i)=>`<span class="cell">${i<n?seed:''}</span>`).join('')}</div>`;
+    function page(n, title, intro, tip, body, answer, w) {
+      return `<section class="sheet" aria-labelledby="activity-${n}"><div class="brand">${seed}<span>${w.brand}</span><span class="page-number">${n} / 3</span></div><p class="eyebrow">${w.activity}</p><h1 id="activity-${n}">${title}</h1><p class="instruction">${intro}</p><aside class="parent-tip"><strong>${w.parent}:</strong> ${tip}</aside>${body}<aside class="answers"><h2>${w.key}</h2><p>${answer}</p></aside><p class="footer">${w.footer}</p></section>`;
+    }
+    function render() {
+      const w=words[language];document.documentElement.lang=language;document.title=w.title;
+      document.querySelector('.toolbar').setAttribute('aria-label',w.nav);
+      document.querySelector('#back').textContent=w.back;document.querySelector('#print').textContent=w.print;
+      document.querySelector('#answer-label').textContent=w.answers;document.querySelector('#print-note').textContent=w.printNote;
+      document.querySelectorAll('[data-lang]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.lang===language)));
+      const add=[6,3].map((n,i)=>`<div class="exercise"><h2>${i===0?w.oneA:w.oneB}</h2>${frame(n,w)}<div class="equation">${n} + ${blank} = 10</div></div>`).join('');
+      const subtract=`<div class="exercise">${objects(8,w)}<div class="equation">8 − ${blank} = 5</div><div class="drawing">${w.twoDrawing}</div></div><div class="exercise"><h2>${w.twoFollow}</h2>${objects(7,w)}<div class="equation">7 − ${blank} = 3</div><div class="drawing">${w.twoDrawing}</div></div>`;
+      const divide=[[8,2],[9,3]].map(([n,friends],i)=>`<div class="share-exercise"><h2>${i===0?w.threeA:w.threeB}</h2>${objects(n,w)}<div class="share-zones">${Array.from({length:friends},(_,j)=>`<div class="share-zone">${w.friend} ${j+1}</div>`).join('')}</div><div class="equation">${n} ÷ ${friends} = ${blank}</div><p>${w.each} ____ ${w.seeds}</p></div>`).join('');
+      document.querySelector('#sheets').innerHTML=page(1,w.oneTitle,w.oneIntro,w.oneTip,add,w.oneKey,w)+page(2,w.twoTitle,w.twoIntro,w.twoTip,subtract,w.twoKey,w)+page(3,w.threeTitle,w.threeIntro,w.threeTip,divide,w.threeKey,w);
+    }
+    document.querySelectorAll('[data-lang]').forEach(button=>button.addEventListener('click',()=>{language=button.dataset.lang;render();}));
+    document.querySelector('#include-answers').addEventListener('change',event=>document.body.classList.toggle('print-answers',event.target.checked));
+    document.querySelector('#print').addEventListener('click',()=>window.print());
+    render();
+  </script>
+</body>
+</html>

@@ -1,4 +1,6 @@
 import './style.css';
+import './family.css';
+import { FAMILY_ACTIVITIES, createFamilySession, renderFamily, renderFamilyCatalog, renderFamilyParentPreview, handleFamilyAction } from './family.js';
 import { result, progressTotal, makeProblem, answerChoices, rangeFor } from './math.js';
 import { createSoundPlayer } from './audio.js';
 import { createNarrator, questionText, numberText } from './narration.js';
@@ -82,6 +84,9 @@ Object.assign(copy.en, {
  offlineNote:'Puzzles, blocks and music work offline once downloaded. Offline speech depends on installed voices. Browsers may clear saved files when storage is low.',
  updateReady:'A new game version is available.', update:'Update and reopen', updateNote:'The current puzzle will restart. Saved progress will be kept.',
 });
+Object.assign(copy.vi, {brand:'Vườn Số', club:'GIEO NIỀM VUI, ĐẾM KHÁM PHÁ', hero:'Gieo một hạt nhỏ.', hero2:'Khám phá điều thật to!', intro:'Cùng những người bạn Mầm chạm, đếm và chơi với các khối số. Mỗi ngày một khám phá, theo nhịp của bé.', family:'Cùng ba mẹ khám phá', familyIntro:'Ba hoạt động mới và phiếu in để mang niềm vui học toán ra ngoài màn hình.', familyTry:'Khám phá cùng nhau', familyFree:'Bản dùng thử miễn phí', familySessionNote:'Hoạt động gia đình chỉ ghi nhận trong lượt đang chơi; không cộng vào tổng bốn phép tính.'});
+Object.assign(copy.en, {brand:'Number Garden', club:'SMALL SEEDS, BIG DISCOVERIES', hero:'Plant a little seed.', hero2:'Grow a big discovery!', intro:'Tap, count and play with number blocks and your little Sprout friends. Explore at your child’s own pace.', family:'Explore as a family', familyIntro:'Three new activities and printable pages to bring math play beyond the screen.', familyTry:'Explore together', familyFree:'Free preview', familySessionNote:'Family activities track this session only; they do not add to the four-operation totals.'});
+let familySession=null;
 const progress=createProgressStore();
 const preferences=progress.data.preferences;
 let round=createRound(), puzzleId=0, attempt={usedDemo:false,retried:false};
@@ -102,8 +107,7 @@ let [a,b] = makeProblem(mode,Math.random,[],maxQuantity);
 let choices=answerChoices(result(mode,a,b),Math.random,rangeFor(mode,maxQuantity));
 const t = key => copy[lang][key];
 function character(n, extra='') {
- const cols=n===4||n===6||n===8||n===10?2:n===9?3:1;
- return `<div class="character c${n} ${extra}" style="--cols:${cols};--rows:${Math.ceil(n/cols)}"><span class="character-number">${n}</span><div class="character-body">${Array.from({length:n},()=>'<i></i>').join('')}<div class="face"><div class="eyes">${n===1?'<b></b>':'<b></b><b></b>'}</div><div class="smile"></div></div>${n===3?'<div class="crown">♛</div>':''}</div><span class="leg left"></span><span class="leg right"></span><span class="arm left"></span><span class="arm right"></span></div>`;
+ return `<div class="character garden-friend ${extra}" aria-hidden="true"><span class="sprout-leaves"><i></i><i></i></span><div class="sprout-pot"><span class="sprout-eyes"><i></i><i></i></span><span class="sprout-smile"></span><span class="sprout-seeds">${Array.from({length:n},()=>'<i></i>').join('')}</span></div><span class="sprout-label">${n}</span></div>`;
 }
 function block(id, color, active=true) {return `<button class="unit ${color} ${used.has(id)?'used':''}" data-block="${id}" ${!active||used.has(id)||moving||grouping?'disabled':''} aria-label="${t('block')} ${Number(id.split('-').pop())+1}"><span class="mini-eyes">••</span></button>`;}
 function units(n,color='coral') {return Array.from({length:n},(_,i)=>`<span class="unit result-unit ${color}" style="--delay:${i%5*35}ms"><span class="mini-eyes">••</span></span>`).join('');}
@@ -137,13 +141,13 @@ function options() {
  return choices.map(n=>`<button class="answer-option ${won&&n===answer?'right-answer':''}" data-answer="${n}" ${won?'disabled':''} aria-label="${t('choose')}: ${n}">${n}${won&&n===answer?'<span aria-hidden="true">✓</span>':''}</button>`).join('');
 }
 function header() {
- return `<header class="topbar"><button class="brand" data-home aria-label="${t('home')}"><span class="brand-icon" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>number<span class="brand-light">blocks</span><small>${t('club')}</small></span></button><div class="header-actions"><button class="parents-link" data-parent aria-label="${t('parent')}"><span aria-hidden="true">♡</span><span class="parents-text">${t('parent')}</span></button><div class="language" aria-label="Language"><button data-lang="vi" class="${lang==='vi'?'selected':''}" aria-pressed="${lang==='vi'}">VI</button><button data-lang="en" class="${lang==='en'?'selected':''}" aria-pressed="${lang==='en'}">EN</button></div><button class="music-button ${music?'enabled':''}" data-music aria-label="${t('music')}: ${music?t('on'):t('off')}" aria-pressed="${music}" title="${t('music')}"><span aria-hidden="true">♫</span><small>${t('music')}</small>${music?'':'<span class="muted-slash" aria-hidden="true">╱</span>'}</button><button class="sound-button ${sound?'enabled':''}" data-sound aria-label="${t('sound')}: ${sound?t('on'):t('off')}" aria-pressed="${sound}"><span aria-hidden="true">${sound?'🔊':'🔇'}</span></button></div></header>`;
+ return `<header class="topbar"><button class="brand" data-home aria-label="${t('home')}"><img class="garden-logo" src="${import.meta.env.BASE_URL}icons/garden.svg" alt="" aria-hidden="true"><span>${t('brand')}<small>${t('club')}</small></span></button><div class="header-actions"><button class="parents-link" data-parent aria-label="${t('parent')}"><span aria-hidden="true">♡</span><span class="parents-text">${t('parent')}</span></button><div class="language" aria-label="Language"><button data-lang="vi" class="${lang==='vi'?'selected':''}" aria-pressed="${lang==='vi'}">VI</button><button data-lang="en" class="${lang==='en'?'selected':''}" aria-pressed="${lang==='en'}">EN</button></div><button class="music-button ${music?'enabled':''}" data-music aria-label="${t('music')}: ${music?t('on'):t('off')}" aria-pressed="${music}" title="${t('music')}"><span aria-hidden="true">♫</span><small>${t('music')}</small>${music?'':'<span class="muted-slash" aria-hidden="true">╱</span>'}</button><button class="sound-button ${sound?'enabled':''}" data-sound aria-label="${t('sound')}: ${sound?t('on'):t('off')}" aria-pressed="${sound}"><span aria-hidden="true">${sound?'🔊':'🔇'}</span></button></div></header>`;
 }
 function welcome() {
  return `<main class="welcome-screen"><section class="welcome-content"><div class="welcome-copy"><div class="eyebrow">✦ ${t('badge')}</div><h1 tabindex="-1">${t('hero')}<br><span>${t('hero2')}</span></h1><p>${t('intro')}</p><button class="start-button" data-start><span class="start-icon" aria-hidden="true">▶</span> ${t('start')} <span aria-hidden="true">→</span></button><div class="welcome-note">${t('soundTip')}</div><button class="app-shortcut" data-parent>▦ ${t('appShortcut')}</button></div><div class="hero-art" aria-hidden="true"><div class="art-orbit"></div><span class="doodle d1">✧</span><span class="doodle d2">✦</span><span class="doodle d3">+</span><span class="doodle d4">∿</span><span class="hello">${lang==='vi'?'Chào bé!':'Hello there!'}</span>${character(1,'hero-one')}${character(3,'hero-three')}${character(2,'hero-two')}<div class="ground"></div></div></section><div class="welcome-footer"><span>✦ ${t('ages')}</span><span>♡ ${t('safe')}</span><span>VI / EN</span></div></main>`;
 }
 function selection() {
- return `<main class="selection-screen"><div class="screen-toolbar"><button class="back-button" data-home>← ${t('home')}</button><span class="little-caption">✦ ${t('ready')}</span></div><div class="selection-heading"><h1 tabindex="-1">${t('pickTitle')}</h1><p>${t('pickSubtitle')}</p><p class="round-hint">${t('roundHint')}</p></div><div class="number-range" role="group" aria-label="${t('rangeLabel')}"><button data-range="5" aria-pressed="${maxQuantity===5}">${t('smallSteps')}</button><button data-range="10" aria-pressed="${maxQuantity===10}">${t('exploreMore')}</button><button data-range="20" aria-pressed="${maxQuantity===20}">${t('upToTwenty')}</button></div>${maxQuantity===20?`<p class="range-note">${t('twentyNote')}</p>`:''}<nav class="operation-grid" aria-label="${t('change')}">${Object.keys(symbols).map((m,i)=>`<button data-mode="${m}" class="operation-card operation-${m}"><div class="operation-top"><span class="operation-symbol">${symbols[m]}</span><span class="operation-arrow" aria-hidden="true">→</span></div><div class="operation-bottom"><div><strong>${t(m)}</strong><small>${t('sub'+m)}</small></div><div class="card-friend" aria-hidden="true">${character(i===0?2:i===1?1:i===2?3:4)}</div></div></button>`).join('')}</nav></main>`;
+ return `<main class="selection-screen"><div class="screen-toolbar"><button class="back-button" data-home>← ${t('home')}</button><span class="little-caption">✦ ${t('ready')}</span></div><div class="selection-heading"><h1 tabindex="-1">${t('pickTitle')}</h1><p>${t('pickSubtitle')}</p><p class="round-hint">${t('roundHint')}</p></div><div class="number-range" role="group" aria-label="${t('rangeLabel')}"><button data-range="5" aria-pressed="${maxQuantity===5}">${t('smallSteps')}</button><button data-range="10" aria-pressed="${maxQuantity===10}">${t('exploreMore')}</button><button data-range="20" aria-pressed="${maxQuantity===20}">${t('upToTwenty')}</button></div>${maxQuantity===20?`<p class="range-note">${t('twentyNote')}</p>`:''}<nav class="operation-grid" aria-label="${t('change')}">${Object.keys(symbols).map((m,i)=>`<button data-mode="${m}" class="operation-card operation-${m}"><div class="operation-top"><span class="operation-symbol">${symbols[m]}</span><span class="operation-arrow" aria-hidden="true">→</span></div><div class="operation-bottom"><div><strong>${t(m)}</strong><small>${t('sub'+m)}</small></div><div class="card-friend" aria-hidden="true">${character(i===0?2:i===1?1:i===2?3:4)}</div></div></button>`).join('')}</nav><section class="family-entry"><div><span class="family-preview-badge">${t('familyFree')}</span><h2>${t('family')}</h2><p>${t('familyIntro')}</p></div><button class="back-button" data-family-catalog>${t('familyTry')} →</button></section></main>`;
 }
 function game() {
  const done=moved>=progressTotal(mode,a,b);
@@ -182,32 +186,40 @@ function render(focusHeading=false) {
  const dialogWasOpen=!!document.querySelector('dialog[open]');
  const breakdownWasOpen=!!document.querySelector('.progress-breakdown[open]');
  const active=document.activeElement;
- const focused=active?.getAttributeNames().find(name=>name.startsWith('data-'));
- const value=focused?active.getAttribute(focused):null;
+ const focusedAttributes=active?.getAttributeNames().filter(name=>name.startsWith('data-'))||[];
+ const focused=focusedAttributes[0];
+ const values=focusedAttributes.map(name=>[name,active.getAttribute(name)]);
  document.documentElement.lang=lang;
+ document.title=t('brand')+' · '+(lang==='vi'?'Chơi và khám phá toán học':'Play and explore math');
  document.body.dataset.screen=screen;
- document.querySelector('#app').innerHTML=header()+`<p class="speech-notice" role="status" ${audioNotice?'':'hidden'}>${audioNotice?t(audioNotice):''} <button class="speech-help-button" data-parent>${t('voiceHelp')}</button></p>`+(screen==='welcome'?welcome():screen==='choose'?selection():screen==='retry'?retryScreen():screen==='summary'?summaryScreen():game())+`<dialog><button class="dialog-x" data-close aria-label="${t('close')}">×</button><span class="dialog-icon">♡</span><h2>${t('parentTitle')}</h2><p>${t('parentText')}</p><p>${t('parentNote')}</p>${progressPanel()}<section class="app-help">${appPanel()}</section><section class="learning-help"><h3>${t('learningTitle')}</h3><p>${t('learningNote')}</p></section><section class="voice-help"><h3>${t('voiceTitle')}</h3><p>${t('voiceInstructions')}</p><button class="back-button" data-test-voice>♬ ${t('testVoice')}</button><p class="voice-test-status" role="status">${audioNotice?t(audioNotice):''}</p></section><button class="primary-button" data-close>${t('close')}</button></dialog>`;
+ document.querySelector('#app').innerHTML=header()+`<p class="speech-notice" role="status" ${audioNotice?'':'hidden'}>${audioNotice?t(audioNotice):''} <button class="speech-help-button" data-parent>${t('voiceHelp')}</button></p>`+(screen==='welcome'?welcome():screen==='choose'?selection():screen==='retry'?retryScreen():screen==='summary'?summaryScreen():screen==='family'?renderFamilyCatalog(lang):screen==='family-play'?renderFamily(familySession,lang):game())+`<dialog><button class="dialog-x" data-close aria-label="${t('close')}">×</button><span class="dialog-icon">♡</span><h2>${t('parentTitle')}</h2><p>${t('parentText')}</p><p>${t('parentNote')}</p>${renderFamilyParentPreview(lang)}<p class="family-session-note">${t('familySessionNote')}</p>${progressPanel()}<section class="app-help">${appPanel()}</section><section class="learning-help"><h3>${t('learningTitle')}</h3><p>${t('learningNote')}</p></section><section class="voice-help"><h3>${t('voiceTitle')}</h3><p>${t('voiceInstructions')}</p><button class="back-button" data-test-voice>♬ ${t('testVoice')}</button><p class="voice-test-status" role="status">${audioNotice?t(audioNotice):''}</p></section><button class="primary-button" data-close>${t('close')}</button></dialog>`;
  bind();
  if(breakdownWasOpen)document.querySelector('.progress-breakdown').open=true;
  if(dialogWasOpen)document.querySelector('dialog').showModal();
  if(focusHeading) document.querySelector('h1')?.focus({preventScroll:true});
  else if(focused) {
-  const target=Array.from(document.querySelectorAll(`[${focused}]`)).find(el=>el.getAttribute(focused)===value&&!el.disabled);
-  (target || (focused==='data-block'||focused==='data-all'?document.querySelector('[data-block]:not(:disabled), [data-answer]:not(:disabled)'):null))?.focus({preventScroll:true});
+  const target=Array.from(document.querySelectorAll(`[${focused}]`)).find(el=>values.every(([name,value])=>el.getAttribute(name)===value)&&!el.disabled);
+  (target || (focused==='data-family-action'?document.querySelector('[data-family-action=next]'):focused==='data-block'||focused==='data-all'?document.querySelector('[data-block]:not(:disabled), [data-answer]:not(:disabled)'):null))?.focus({preventScroll:true});
  }
 }
 // Giữ dấu làm mẫu/chọn sai khi chơi lại cùng bài; chỉ freshPuzzle tạo dấu mới.
 function clear() { cancelActivity();moved=0; used.clear(); feedback=''; won=false; narrator.cancel(); }
 function navigate(next) {
  cancelActivity();
- const hash=next==='play'||next==='retry'?`#${next}/${mode}`:`#${next}`;
+ const hash=next==='family-play'?`#family/${familySession.activityId}`:next==='play'||next==='retry'?`#${next}/${mode}`:`#${next}`;
  if(location.hash!==hash)history.pushState(null,'',hash);
  screen=next;render(true);window.scrollTo(0,0);
 }
 function readRoute() {
  cancelActivity();
  const route=location.hash.slice(1).split('/');
- if((route[0]==='play'||route[0]==='retry')&&Object.hasOwn(symbols,route[1])){
+ if(route[0]==='family'){
+  const id=route[1];
+  if(FAMILY_ACTIVITIES.includes(id)){
+   if(familySession?.activityId!==id)familySession=createFamilySession(id);
+   screen='family-play';
+  }else screen='family';
+ } else if((route[0]==='play'||route[0]==='retry')&&Object.hasOwn(symbols,route[1])){
   if(mode!==route[1]){mode=route[1];round=createRound();freshPuzzle();}
   screen=route[0];
  } else screen=route[0]==='summary'&&round.finished?'summary':route[0]==='choose'?'choose':'welcome';
@@ -222,6 +234,11 @@ function speak(text, explicit=false) {
  if((!sound&&!explicit)||document.hidden)return;
  audioNotice=false;const notice=document.querySelector('.speech-notice');if(notice)notice.hidden=true;
  return narrator.speak(text,lang);
+}
+function readFamily(explicit=false){
+ if(screen!=='family-play'||familySession?.completed)return;
+ const text=document.querySelector('.family-question h2')?.textContent;
+ if(text)speak(text,explicit);
 }
 function readPuzzle(explicit=false){speak(questionText(lang,mode,a,b),explicit);}
 function revealAnswers() {
@@ -271,15 +288,15 @@ function bind() {
  on('[data-home]',()=>{narrator.cancel();navigate('welcome');});
  on('[data-start], [data-choose]',()=>{narrator.cancel();navigate('choose');sounds.play('next');});
  on('[data-mode]',el=>{const previous=mode===el.dataset.mode?[a,b]:[];mode=el.dataset.mode;round=createRound();freshPuzzle(previous);navigate('play');sounds.play('next');readPuzzle();});
- on('[data-lang]',el=>{cancelActivity();lang=el.dataset.lang;savePreferences();audioNotice=false;render();if(screen==='play')readPuzzle();else if(screen==='retry')speak(t('wrongNote'));});
+ on('[data-lang]',el=>{cancelActivity();lang=el.dataset.lang;savePreferences();audioNotice=false;render();if(screen==='play')readPuzzle();else if(screen==='retry')speak(t('wrongNote'));else if(screen==='family-play')readFamily();});
  on('[data-range]',el=>{maxQuantity=Number(el.dataset.range);round=createRound();freshPuzzle();savePreferences();render();sounds.play('toggle');});
  on('[data-count-together]',async()=>{clear();navigate('play');await runAll();});
  on('[data-block]',el=>move(el.dataset.block));
  on('[data-all]',()=>{void runAll();});
  on('[data-reset]',()=>{clear();render();sounds.play('reset');readPuzzle();});
  on('[data-music]',()=>{music=!music;savePreferences();sounds.setMusicEnabled(music);render();});
- on('[data-sound]',()=>{cancelActivity();sound=!sound;savePreferences();sounds.setEnabled(sound);if(sound)sounds.play('toggle');else narrator.cancel();render();if(sound&&screen==='play')readPuzzle();});
- on('[data-listen]',()=>{cancelActivity();render();readPuzzle(true);});
+ on('[data-sound]',()=>{cancelActivity();sound=!sound;savePreferences();sounds.setEnabled(sound);if(sound)sounds.play('toggle');else narrator.cancel();render();if(sound&&screen==='play')readPuzzle();else if(sound&&screen==='family-play')readFamily();});
+ on('[data-listen]',()=>{cancelActivity();render();if(screen==='family-play')readFamily(true);else readPuzzle(true);});
  on('[data-test-voice]',()=>{const status=document.querySelector('.voice-test-status');if(status)status.textContent='';speak(questionText(lang,'add',1,1),true);});
  on('[data-answer]',async el=>{
   if(won)return;
@@ -293,6 +310,20 @@ function bind() {
  on('[data-replay]',()=>{clear();navigate('play');sounds.play('reset');readPuzzle();});
  on('[data-new]',()=>{if(round.finished){navigate('summary');sounds.play('merge');return;}freshPuzzle([a,b]);render();sounds.play('next');readPuzzle();});
  bindAppPanel();
+ on('[data-family-catalog]',()=>{document.querySelector('dialog')?.close();navigate('family');sounds.play('next');});
+ on('[data-family-start]',el=>{cancelActivity();familySession=createFamilySession(el.dataset.familyStart);document.querySelector('dialog')?.close();navigate('family-play');sounds.play('next');readFamily();});
+ on('[data-family-print]',()=>{cancelActivity();window.location.assign(`${import.meta.env.BASE_URL}family-activities.html?lang=${lang}`);});
+ on('[data-family-action]',el=>{
+  if(!familySession)return;
+  cancelActivity();
+  const event=handleFamilyAction(familySession,el.dataset.familyAction,el.dataset.familyValue);
+  if(event.type==='ignored')return;
+  sounds.play(event.type==='correct'?'correct':event.type==='wrong'?'retry':event.type==='move'?'tap':'next');
+  render(event.type==='next'||event.type==='completed');
+  if(event.type==='correct')speak(t('correct'));
+  else if(event.type==='wrong')speak(lang==='vi'?'Mình cùng đếm lại nhé.':'Let’s count together and try again.');
+  else if(event.type==='next')readFamily();
+ });
  const dialog=document.querySelector('dialog');on('[data-parent]',()=>{cancelActivity();render();document.querySelector('dialog').showModal();});on('[data-close]',()=>dialog.close());dialog.onclick=e=>{if(e.target===dialog)dialog.close();};
 }
 function prepareAudio(){void sounds.start();narrator.warmup();}
@@ -302,5 +333,5 @@ document.addEventListener('click',prepareAudio,{capture:true});
 document.addEventListener('visibilitychange',()=>{sounds.setPaused(document.hidden);if(document.hidden){cancelActivity();render();}});
 window.addEventListener('pagehide',()=>{sounds.setPaused(true);cancelActivity();});
 window.addEventListener('pageshow',()=>sounds.setPaused(document.hidden));
-window.addEventListener('popstate',()=>{readRoute();if(screen==='play')readPuzzle();});
+window.addEventListener('popstate',()=>{readRoute();if(screen==='play')readPuzzle();else if(screen==='family-play')readFamily();});
 readRoute();

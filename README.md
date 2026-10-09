@@ -1,6 +1,16 @@
-# Numberblocks · Little Math Club
+# Vườn Số · Number Garden
 
-A Vietnamese / English math playground for preschool children, built with vanilla JavaScript and Vite. Illustrated block characters are drawn with CSS; no image service or API key is required.
+Sân chơi toán học Việt/Anh cho trẻ mầm non, xây dựng bằng JavaScript và Vite. Nhân vật Mầm là những chậu cây với hạt khối và thẻ số, được vẽ bằng CSS/SVG riêng cho dự án. Không cần dịch vụ hình ảnh hoặc khóa API.
+
+## Góc gia đình — bản giới thiệu miễn phí
+
+Chọn **Bắt đầu chơi → Cùng ba mẹ khám phá**, hoặc mở **Dành cho ba mẹ → Góc gia đình**. Ba hoạt động mới gồm ghép đủ 10, tìm phần bị bớt và chia đều hạt mầm. Mỗi hoạt động có ba bài, thao tác lượng bằng nút chạm, chọn đáp án trước hoặc sau khi thao tác, phản hồi đúng/sai và gợi ý chơi ngoài màn hình. Chuyển VI/EN giữ nguyên bài đang chơi. Tiến độ các hoạt động mẫu chỉ ở trong lượt hiện tại, không cộng vào tổng bốn phép tính.
+
+Nút **Phiếu chơi cùng bé** mở trang in độc lập có ba phiếu A4, đổi Việt/Anh và lựa chọn in đáp án cho ba mẹ. Có thể dùng hộp thoại in của trình duyệt để lưu PDF. Trang phiếu dùng được ngoại tuyến khi bản game mới đã được tải vào bộ nhớ đệm. Xem [hướng dẫn nội dung gia đình](docs/family-content.md).
+
+Bản này hoàn toàn miễn phí: không thanh toán, đăng ký, thu email hoặc chặn tính năng đang có. Chưa mở bán vì chưa có thông tin đơn vị bán và phương thức thanh toán. Tên Vườn Số / Number Garden là tên làm việc do chủ dự án chọn, chưa phải kết quả tra cứu hoặc đăng ký nhãn hiệu.
+
+Đường dẫn repository `/numberblocks/`, khóa dữ liệu `numberblocks-v1`, định danh manifest và tiền tố cache cũ được giữ để bảo toàn tiến độ/cập nhật của người chơi hiện tại. Tên hiển thị, biểu tượng và nhân vật của bản mới là Vườn Số. Thiết bị có thể cập nhật tên/biểu tượng ứng dụng đã cài theo lịch riêng của trình duyệt.
 
 ## Run
 
@@ -34,6 +44,8 @@ VI / EN switches the entire game language. Audio starts only after interaction; 
 No account, analytics, advertising or backend. Use the existing checkout in each isolated cloud task; no additional worktree is needed. Development servers must be started again in a new task.
 
 ## GitHub Pages
+
+Bản trên Pages chỉ là sân chơi giáo dục và hoạt động thử miễn phí. [Giới hạn chính thức của GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits) không cho dùng Pages làm hosting miễn phí cho website chủ yếu phục vụ kinh doanh, giao dịch thương mại hoặc SaaS thương mại. Trước khi mở bán, cần chọn hạ tầng phù hợp, bổ sung thông tin bên bán/chính sách hỗ trợ và xác thực thanh toán/quyền truy cập phía máy chủ. Bản giới thiệu này không có cơ chế mở khóa trả phí giả lập ở trình duyệt.
 
 The GitHub Actions workflow `.github/workflows/pages.yml` tests, builds, and deploys pushes to `main`. Vite uses `/numberblocks/` as the base path, so the game is served at `https://huykien94.github.io/numberblocks/` after a successful deployment.
 

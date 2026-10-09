@@ -37,7 +37,8 @@ self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   const isEntry = event.request.mode === 'navigate' &&
     (url.pathname === ROOT.pathname || url.pathname === new URL('index.html', ROOT).pathname);
-  const key = isEntry ? INDEX : url.href;
+  // Các phiếu in dùng ?lang=vi/en; nội dung tĩnh vẫn lấy từ cùng tệp đã lưu.
+  const key = isEntry ? INDEX : url.origin === ROOT.origin ? new URL(url.pathname, ROOT).href : url.href;
   if (!ASSETS.includes(key)) return;
   event.respondWith(caches.open(CACHE).then(async cache => (await cache.match(key)) || fetch(event.request)));
 });
