@@ -43,7 +43,9 @@ Before the first deployment, a repository administrator must open **Settings →
 
 Music and speech use different browser APIs. Music working does not prove that Android text-to-speech is configured. Open **Speech help / Cách bật giọng đọc** in the warning, or **For parents / Dành cho ba mẹ**, then **Test voice / Thử giọng đọc**.
 
-On Samsung tablets, check **Settings → General management → Text-to-speech** (names vary with Android versions). Select Google's speech engine if available and install Vietnamese or English voice data as appropriate. Verify the device's own speech preview, reopen Chrome and test the game again. The web app cannot install Android voices or change the preferred speech engine. Browser tests simulate missing/late voices and silent engines; a physical Samsung Tab S6 has not been verified.
+On Samsung tablets, check **Settings → General management → Text-to-speech** (names vary with Android versions). Select Google's speech engine if available and install Vietnamese or English voice data as appropriate. Verify the device's own speech preview, reopen Chrome and test the game again. The web app cannot install Android voices or change the preferred speech engine. Browser tests simulate missing/late voices and silent engines.
+
+Ngày 09/10/2026, người dùng xác nhận giọng đọc đã hoạt động tốt trên Tab S6. Đội phát triển chưa kiểm tra trực tiếp thiết bị này và chưa có thông tin phiên bản Android/Chrome; kết quả không đại diện cho mọi thiết bị Android. Đợt cải tiến bên dưới giữ nguyên mã âm thanh và giọng đọc.
 
 ## Saved progress and tablet installation
 
@@ -56,3 +58,11 @@ Production builds include a web app manifest, home-screen icons and a service wo
 Updates wait while the existing game is open. The parent panel offers **Update and reopen**, explaining that the current puzzle restarts while saved totals and preferences remain. The app never automatically reloads a running puzzle. Closing all game tabs also allows a waiting worker to activate normally. Cache cleanup is restricted to this game's cache prefix.
 
 See [Product improvements](docs/product-improvements.md) for design choices, reviewed technical references and validation limits.
+
+## Cải tiến bài toán và tiến độ — Đợt 1
+
+- Phép cộng trong phạm vi 10 có đủ **45 cặp số dương** với tổng không vượt quá 10, gồm cả 6 + 1, 7 + 2 và 9 + 1. Mức 5 và 20 vẫn có lần lượt 10 và 190 cặp. Mỗi bài mới tránh lặp ngay cặp trước đó.
+- Ba lựa chọn là những số khác nhau, nằm trong phạm vi đang chơi. Hai đáp án sai được chọn ngẫu nhiên ở khoảng cách 1–2 đơn vị quanh đáp án đúng; khi đủ khoảng trống hai phía, đáp án đúng có thể nhỏ nhất, ở giữa hoặc lớn nhất. Vị trí và giá trị lựa chọn không đổi khi di chuyển khối, đổi ngôn ngữ hoặc chơi lại cùng bài.
+- **Dành cho ba mẹ → Xem cách hoàn thành bài** hiển thị hai chiều thống kê cho từng phép tính: đã/chưa dùng làm mẫu trong game, và đã/chưa chọn sai trước lần trả lời đúng đầu tiên. Hai chiều cùng mô tả các bài đã hoàn thành, không được cộng chồng thành tổng mới.
+- Làm mẫu bao gồm nút gộp/bớt/tạo nhóm/chia đều khi còn khối cần di chuyển và nút **Cùng đếm lại**. Tự chạm khối hoặc minh họa tự động sau đáp án đúng không tính là làm mẫu. Dấu làm mẫu và chọn sai được giữ qua Làm lại, Chơi lại từ đầu và đổi VI/EN; mỗi bài chỉ được cộng tiến độ một lần.
+- Dữ liệu cũ giữ nguyên tổng và cài đặt, hiển thị phần thiếu thông tin là **Chưa có dữ liệu phân loại**. Các nhóm thống kê được bổ sung vào khóa `numberblocks-v1`, vẫn dùng `version: 1`; không lưu từng câu trả lời, danh tính hoặc thời điểm chơi. Game không biết bé có được người lớn giúp hay không; nhiều bé dùng chung trình duyệt sẽ có chung thống kê.

@@ -1,10 +1,24 @@
 export const STORAGE_KEY = 'numberblocks-v1';
 export const ROUND_SIZE = 5;
 export const operations = ['add', 'subtract', 'multiply', 'divide'];
-const count = value => Number.isSafeInteger(value) && value >= 0 && value <= 1_000_000 ? value : 0;
+const MAX_COUNT = 1_000_000;
+const isCount = value => Number.isSafeInteger(value) && value >= 0 && value <= MAX_COUNT;
+const count = value => isCount(value) ? value : 0;
+const breakdownKeys = ['withoutDemo', 'withDemo', 'withoutRetry', 'afterRetry'];
+const emptyBreakdown = () => Object.fromEntries(breakdownKeys.map(key => [key, 0]));
+
+function normalizeBreakdown(value, completed) {
+  if (!breakdownKeys.every(key => isCount(value?.[key]))) return emptyBreakdown();
+  const demoTotal = value.withoutDemo + value.withDemo;
+  const retryTotal = value.withoutRetry + value.afterRetry;
+  // Hai chiều mô tả cùng số bài; phần còn lại chưa có dữ liệu phân loại.
+  if (demoTotal !== retryTotal || demoTotal > completed) return emptyBreakdown();
+  return Object.fromEntries(breakdownKeys.map(key => [key, value[key]]));
+}
 
 function normalize(value) {
   const data = value?.version === 1 ? value : {};
+  const completed = Object.fromEntries(operations.map(mode => [mode, count(data.completed?.[mode])]));
   return {
     version: 1,
     preferences: {
@@ -13,7 +27,8 @@ function normalize(value) {
       sound: typeof data.preferences?.sound === 'boolean' ? data.preferences.sound : true,
       music: typeof data.preferences?.music === 'boolean' ? data.preferences.music : true,
     },
-    completed: Object.fromEntries(operations.map(mode => [mode, count(data.completed?.[mode])])),
+    completed,
+    breakdown: Object.fromEntries(operations.map(mode => [mode, normalizeBreakdown(data.breakdown?.[mode], completed[mode])])),
   };
 }
 
@@ -32,9 +47,13 @@ export function createProgressStore(getStorage = () => globalThis.localStorage) 
     get available() { return available; },
     get total() { return Object.values(data.completed).reduce((sum, n) => sum + n, 0); },
     preferences(patch) { data = normalize({...data, preferences: {...data.preferences, ...patch}}); save(); },
-    complete(mode) {
-      if (!operations.includes(mode)) return;
-      data.completed[mode] = Math.min(1_000_000, data.completed[mode] + 1);
+    complete(mode, attempt) {
+      if (!operations.includes(mode) || data.completed[mode] >= MAX_COUNT) return;
+      data.completed[mode] += 1;
+      if (typeof attempt?.usedDemo === 'boolean' && typeof attempt?.retried === 'boolean') {
+        data.breakdown[mode][attempt.usedDemo ? 'withDemo' : 'withoutDemo'] += 1;
+        data.breakdown[mode][attempt.retried ? 'afterRetry' : 'withoutRetry'] += 1;
+      }
       save();
     },
   };

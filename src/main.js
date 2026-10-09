@@ -54,7 +54,11 @@ Object.assign(copy.vi, {
  rest:'Nghỉ một chút', playAgain:'Chơi lượt mới', progressTitle:'Những bài bé đã khám phá', progressNote:'Tổng số bài đã trả lời đúng trên trình duyệt này, kể cả bài có trợ giúp. Đây không phải đánh giá năng lực của bé.',
  savedHere:'Tiến độ và cài đặt được lưu trên thiết bị này. Không đồng bộ giữa các máy; xóa dữ liệu trình duyệt sẽ xóa tiến độ.', storageUnavailable:'Trình duyệt chưa lưu được dữ liệu. Bé vẫn chơi được, nhưng tiến độ có thể mất khi đóng trang.',
  parentText:'Mỗi lượt có 5 bài hoàn thành. Bắt đầu ở phạm vi 5 và tăng lên 10 hoặc 20 khi con sẵn sàng. Cho con chạm, đếm và tự chọn đáp án; có thể cùng đếm lại khi cần.',
- parentNote:'Không giới hạn thời gian, không tài khoản, không quảng cáo. Chỉ lưu cài đặt và tổng số bài đúng trên thiết bị; không gửi tiến độ lên máy chủ. Giọng đọc tùy thuộc trình duyệt và giọng đã cài trên máy.',
+ parentNote:'Không giới hạn thời gian, không tài khoản, không quảng cáo. Chỉ lưu cài đặt và số bài đã hoàn thành theo từng nhóm trên thiết bị; không gửi tiến độ lên máy chủ. Giọng đọc tùy thuộc trình duyệt và giọng đã cài trên máy.',
+ breakdownTitle:'Xem cách hoàn thành bài', breakdownNote:'Ghi nhận đến lần trả lời đúng đầu tiên của mỗi bài. Hai cách phân loại bên dưới cùng mô tả những bài đã hoàn thành, không cộng thành một tổng mới.',
+ demoAxis:'Làm mẫu trong game', retryAxis:'Chọn đáp án', withoutDemo:'Chưa dùng làm mẫu', withDemo:'Đã dùng làm mẫu', withoutRetry:'Chưa chọn sai', afterRetry:'Sau khi chọn sai', unclassified:'Chưa có dữ liệu phân loại',
+ demoNote:'Làm mẫu là dùng nút gộp, bớt, tạo nhóm, chia đều hoặc Cùng đếm lại trước khi trả lời đúng. Tự chạm khối và phần minh họa sau đáp án đúng không tính là làm mẫu.',
+ unclassifiedNote:'Bài từ bản cũ hoặc thiếu dữ liệu vẫn được giữ trong tổng, không suy đoán cách hoàn thành. Game không biết bé có được người lớn trợ giúp hay không; số liệu có thể gồm nhiều bé dùng chung trình duyệt.',
  appTitle:'Mang sân chơi lên tablet', appShortcut:'Cài lên màn hình chính', install:'Cài game', installed:'Game đang mở như ứng dụng',
  installHelp:'Trên Chrome Android: mở menu ⋮ → Cài đặt ứng dụng hoặc Thêm vào màn hình chính. Trên iPad: Safari → Chia sẻ → Thêm vào MH chính. Tên mục có thể khác tùy máy.',
  offlineReady:'✓ Đã sẵn sàng chơi ngoại tuyến', offlinePreparing:'Mở game khi có mạng để chuẩn bị chơi ngoại tuyến.', offlineFailed:'Chưa tải được bản ngoại tuyến. Hãy mở lại game khi có mạng.',
@@ -67,7 +71,11 @@ Object.assign(copy.en, {
  rest:'Take a little break', playAgain:'Play a new round', progressTitle:'Puzzles your child has explored', progressNote:'Puzzles answered correctly in this browser, including those with help. These counts are not an assessment of ability.',
  savedHere:'Progress and settings stay on this device. They do not sync to other devices; clearing browser data erases progress.', storageUnavailable:'This browser could not save progress. Play still works, but progress may be lost when you close the page.',
  parentText:'Each round has 5 completed puzzles. Start with numbers up to 5 and explore 10 or 20 when your child is ready. Invite them to touch, count and choose an answer, counting together whenever needed.',
- parentNote:'No timers, accounts or ads. Only settings and completed-puzzle totals are saved on this device; progress is not sent to a server. Speech depends on the browser and installed voices.',
+ parentNote:'No timers, accounts or ads. Only settings and grouped counts of completed puzzles are saved on this device; progress is not sent to a server. Speech depends on the browser and installed voices.',
+ breakdownTitle:'How puzzles were completed', breakdownNote:'Recorded up to the first correct answer for each puzzle. The two views below describe the same completed puzzles; do not add them into a new total.',
+ demoAxis:'In-game demonstration', retryAxis:'Answer choices', withoutDemo:'Without demonstration', withDemo:'With demonstration', withoutRetry:'No incorrect answer', afterRetry:'After an incorrect answer', unclassified:'No classification data',
+ demoNote:'Demonstration means using the bring, take, group, share or Count together button before answering correctly. Moving blocks by hand and the animation after a correct answer do not count.',
+ unclassifiedNote:'Puzzles from older versions or with missing data remain in the total without guessing how they were completed. The game cannot tell whether an adult helped; these counts may include children sharing this browser.',
  appTitle:'Bring the playground to your tablet', appShortcut:'Add to home screen', install:'Install game', installed:'Game is open as an app',
  installHelp:'On Android Chrome: open the ⋮ menu → Install app or Add to Home screen. On iPad: Safari → Share → Add to Home Screen. Menu names vary by device.',
  offlineReady:'✓ Ready to play offline', offlinePreparing:'Open the game online to prepare for offline play.', offlineFailed:'Offline play could not be prepared. Reopen the game when connected.',
@@ -76,7 +84,7 @@ Object.assign(copy.en, {
 });
 const progress=createProgressStore();
 const preferences=progress.data.preferences;
-let round=createRound(), puzzleId=0;
+let round=createRound(), puzzleId=0, attempt={usedDemo:false,retried:false};
 let screen='welcome', lang=preferences.lang, maxQuantity=preferences.range, mode='add', moved=0, sound=preferences.sound, music=preferences.music, audioNotice=false, feedback='', won=false;
 sounds.setEnabled(sound);sounds.setMusicEnabled(music);
 const appInstall=createAppInstall(updateAppPanel);
@@ -84,7 +92,7 @@ function savePreferences(){progress.preferences({lang,range:maxQuantity,sound,mu
 function freshPuzzle(previous=[]){
  [a,b]=makeProblem(mode,Math.random,previous,maxQuantity);
  choices=answerChoices(result(mode,a,b),Math.random,rangeFor(mode,maxQuantity));
- puzzleId++;clear();
+ puzzleId++;attempt={usedDemo:false,retried:false};clear();
 }
 
 const narrator=createNarrator({onSpeaking:value=>sounds.setDucked(value),onUnavailable:reason=>{audioNotice=reason==='unsupported'?'voiceUnsupported':reason==='language-unavailable'?'voiceMissing':reason==='not-allowed'?'voiceBlocked':'soundUnavailable';updateSpeechNotice();}});
@@ -151,7 +159,13 @@ function summaryScreen(){
 }
 function progressPanel(){
  const data=progress.data;
- return `<section class="parent-progress"><h3>${t('progressTitle')}</h3><p>${t('progressNote')}</p><div class="progress-grid">${Object.keys(symbols).map(key=>`<div><span>${symbols[key]} ${t(key)}</span><strong>${data.completed[key]}</strong></div>`).join('')}</div><p class="storage-note">${t(progress.available?'savedHere':'storageUnavailable')}</p></section>`;
+ const breakdown=Object.keys(symbols).map(key=>{
+  const stats=data.breakdown[key];
+  const unclassified=data.completed[key]-stats.withoutDemo-stats.withDemo;
+  const rows=keys=>keys.map(name=>`<div><dt>${t(name)}</dt><dd>${stats[name]}</dd></div>`).join('');
+  return `<section class="progress-operation" data-progress-mode="${key}"><h4>${symbols[key]} ${t(key)}</h4><h5>${t('demoAxis')}</h5><dl>${rows(['withoutDemo','withDemo'])}</dl><h5>${t('retryAxis')}</h5><dl>${rows(['withoutRetry','afterRetry'])}</dl>${unclassified?`<p class="unclassified">${t('unclassified')}: <strong>${unclassified}</strong></p>`:''}</section>`;
+ }).join('');
+ return `<section class="parent-progress"><h3>${t('progressTitle')}</h3><p>${t('progressNote')}</p><div class="progress-grid">${Object.keys(symbols).map(key=>`<div><span>${symbols[key]} ${t(key)}</span><strong>${data.completed[key]}</strong></div>`).join('')}</div><details class="progress-breakdown"><summary>${t('breakdownTitle')}</summary><p>${t('breakdownNote')}</p><div class="progress-details-grid">${breakdown}</div><p>${t('demoNote')}</p><p>${t('unclassifiedNote')}</p></details><p class="storage-note">${t(progress.available?'savedHere':'storageUnavailable')}</p></section>`;
 }
 function appPanel(){
  return `<h3>${t('appTitle')}</h3><p class="offline-status" role="status">${t(appInstall.ready?'offlineReady':appInstall.failed?'offlineFailed':'offlinePreparing')}</p>${appInstall.installed?`<p>${t('installed')}</p>`:appInstall.canInstall?`<button class="back-button" data-install>${t('install')} ↓</button>`:`<p>${t('installHelp')}</p>`}<p>${t('offlineNote')}</p>${appInstall.updateAvailable?`<div class="app-update"><strong>${t('updateReady')}</strong><p>${t('updateNote')}</p><button class="back-button" data-update>${t('update')}</button></div>`:''}`;
@@ -166,6 +180,7 @@ function updateAppPanel(){
 }
 function render(focusHeading=false) {
  const dialogWasOpen=!!document.querySelector('dialog[open]');
+ const breakdownWasOpen=!!document.querySelector('.progress-breakdown[open]');
  const active=document.activeElement;
  const focused=active?.getAttributeNames().find(name=>name.startsWith('data-'));
  const value=focused?active.getAttribute(focused):null;
@@ -173,6 +188,7 @@ function render(focusHeading=false) {
  document.body.dataset.screen=screen;
  document.querySelector('#app').innerHTML=header()+`<p class="speech-notice" role="status" ${audioNotice?'':'hidden'}>${audioNotice?t(audioNotice):''} <button class="speech-help-button" data-parent>${t('voiceHelp')}</button></p>`+(screen==='welcome'?welcome():screen==='choose'?selection():screen==='retry'?retryScreen():screen==='summary'?summaryScreen():game())+`<dialog><button class="dialog-x" data-close aria-label="${t('close')}">×</button><span class="dialog-icon">♡</span><h2>${t('parentTitle')}</h2><p>${t('parentText')}</p><p>${t('parentNote')}</p>${progressPanel()}<section class="app-help">${appPanel()}</section><section class="learning-help"><h3>${t('learningTitle')}</h3><p>${t('learningNote')}</p></section><section class="voice-help"><h3>${t('voiceTitle')}</h3><p>${t('voiceInstructions')}</p><button class="back-button" data-test-voice>♬ ${t('testVoice')}</button><p class="voice-test-status" role="status">${audioNotice?t(audioNotice):''}</p></section><button class="primary-button" data-close>${t('close')}</button></dialog>`;
  bind();
+ if(breakdownWasOpen)document.querySelector('.progress-breakdown').open=true;
  if(dialogWasOpen)document.querySelector('dialog').showModal();
  if(focusHeading) document.querySelector('h1')?.focus({preventScroll:true});
  else if(focused) {
@@ -180,6 +196,7 @@ function render(focusHeading=false) {
   (target || (focused==='data-block'||focused==='data-all'?document.querySelector('[data-block]:not(:disabled), [data-answer]:not(:disabled)'):null))?.focus({preventScroll:true});
  }
 }
+// Giữ dấu làm mẫu/chọn sai khi chơi lại cùng bài; chỉ freshPuzzle tạo dấu mới.
 function clear() { cancelActivity();moved=0; used.clear(); feedback=''; won=false; narrator.cancel(); }
 function navigate(next) {
  cancelActivity();
@@ -241,6 +258,7 @@ async function move(id){
 }
 async function runAll({celebrate=false}={}){
  if(moving||grouping)return false;
+ if(!celebrate&&!won&&pendingIds().length)attempt.usedDemo=true;
  cancelActivity();const token=activity;grouping=true;
  if(celebrate){sounds.play('correct');speak(t('correct'));}
  render();
@@ -266,10 +284,10 @@ function bind() {
  on('[data-answer]',async el=>{
   if(won)return;
   if(Number(el.dataset.answer)===result(mode,a,b)){
-   cancelActivity();won=true;if(round.credit(puzzleId))progress.complete(mode);feedback='correct';
+   cancelActivity();won=true;if(round.credit(puzzleId))progress.complete(mode,attempt);feedback='correct';
    await runAll({celebrate:true});
   }else{
-   clear();sounds.play('retry');navigate('retry');speak(t('wrongNote'));
+   attempt.retried=true;clear();sounds.play('retry');navigate('retry');speak(t('wrongNote'));
   }
  });
  on('[data-replay]',()=>{clear();navigate('play');sounds.play('reset');readPuzzle();});

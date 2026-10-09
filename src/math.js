@@ -23,8 +23,8 @@ export function rangeFor(mode,selectedRange){return Math.min(selectedRange,mode=
 export function problemPool(mode, previous = [], maxQuantity = 20) {
   maxQuantity=rangeFor(mode,maxQuantity);
   const pool = [];
-  const maxA = mode === 'divide' ? 16 : mode === 'subtract' ? maxQuantity : mode === 'add' && maxQuantity===20 ? 19 : 5;
-  const maxB = mode === 'subtract' ? maxQuantity : mode === 'add' ? (maxQuantity===20?19:5) : 4;
+  const maxA = mode === 'divide' ? 16 : mode === 'subtract' ? maxQuantity : mode === 'add' ? maxQuantity - 1 : 5;
+  const maxB = mode === 'subtract' ? maxQuantity : mode === 'add' ? maxQuantity - 1 : 4;
   for (let a = mode === 'subtract' ? 2 : 1; a <= maxA; a++) {
     for (let b = 1; b <= maxB; b++) {
       if (valid(mode, a, b) && a <= maxQuantity && b <= maxQuantity && result(mode,a,b) <= maxQuantity && (mode !== 'divide' || a / b <= 4) &&
@@ -39,8 +39,12 @@ export function makeProblem(mode, random = Math.random, previous = [], maxQuanti
   return pool[Math.floor(random()*pool.length)];
 }
 export function answerChoices(answer, random = Math.random, maxQuantity = Infinity) {
-  const distractors=[answer-1,answer+1,answer-2,answer+2].filter(n=>n>=0&&n<=maxQuantity).slice(0,2);
-  const choices=[answer,...distractors];
+  const distractors=[answer-2,answer-1,answer+1,answer+2].filter(n=>n>=0&&n<=maxQuantity);
+  for(let i=distractors.length-1;i>0;i--){
+    const j=Math.floor(random()*(i+1));
+    [distractors[i],distractors[j]]=[distractors[j],distractors[i]];
+  }
+  const choices=[answer,...distractors.slice(0,2)];
   for(let i=choices.length-1;i>0;i--){
     const j=Math.floor(random()*(i+1));
     [choices[i],choices[j]]=[choices[j],choices[i]];
